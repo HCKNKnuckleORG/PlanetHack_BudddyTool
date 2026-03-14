@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% set active = "home" %}
+
+{% block content %}
+<canvas id="matrix-canvas"></canvas>
+
+<div class="home-container">
+    <div class="home-overlay">
+        <pre class="ascii-banner">{{ banner }}</pre>
+
+        <div class="tagline">//  CTF &amp; BUG BOUNTY TOOLKIT  //</div>
+        <div class="divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+        <div class="home-prompt">WHAT DO YOU WANT TO DO?</div>
+
+        <div class="btn-grid home-three-col" style="margin-bottom: 16px;">
+            <a href="{{ url_for('recon') }}" class="neon-btn green" style="min-width: 220px;">
+                RECON
+            </a>
+            <a href="{{ url_for('modules') }}" class="neon-btn yellow" style="min-width: 220px;">
+                &gt;&gt; BROWSE OTHER MODULES &lt;&lt;
+            </a>
+            <a href="{{ url_for('report_history') }}" class="neon-btn cyan" style="min-width: 220px;">
+                REPORT HISTORY
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/matrix-rain.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  planet-hack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: planet-hack-ctf
+    command: python main.py --web --host 0.0.0.0 --port 8080
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+      - ./python:/app/python
+    environment:
+      - ENV=dev
+      - LOG_LEVEL=INFO
+      - OLLAMA_URL=${OLLAMA_URL:-}
+    ports:
+      - "8080:8080"
+    networks:
+      - planet-hack-network
+    restart: unless-stopped
+
+  # Optional: Ollama for AI-assisted next steps (use: docker-compose --profile ollama up -d)
+  ollama:
+    image: ollama/ollama
+    container_name: planet-hack-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - planet-hack-network
+    profiles:
+      - ollama
+
+  # Optional: Database for storing scan results (use: docker-compose --profile with-db up -d)
+  postgres:
+    image: postgres:15-alpine
+    container_name: planet-hack-db
+    environment:
+      - POSTGRES_DB=planethack
+      - POSTGRES_USER=planethack
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env before starting}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - planet-hack-network
+    restart: unless-stopped
+    profiles:
+      - with-db
+
+networks:
+  planet-hack-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  ollama_data:
+

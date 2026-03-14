@@ -1,0 +1,719 @@
+/* PlanetHack -- cyberpunk theme */
+
+:root {
+    --bg:           #0a0a0a;
+    --bg-panel:     #0d1117;
+    --bg-input:     #111820;
+    --fg:           #00ff41;
+    --fg-dim:       #00aa28;
+    --fg-bright:    #33ff66;
+    --cyan:         #00ffff;
+    --cyan-dim:     #00aaaa;
+    --magenta:      #ff00ff;
+    --magenta-dim:  #aa00aa;
+    --yellow:       #ffff00;
+    --red:          #ff0040;
+    --orange:       #ff8800;
+    --white:        #e0e0e0;
+    --border:       #00ff41;
+    --border-dim:   #004d14;
+    --glow:         #003311;
+    --font-mono:    'Courier New', 'Fira Mono', monospace;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+::selection {
+    background: var(--glow);
+    color: var(--fg-bright);
+}
+
+/* ── Layout ────────────────────────────────────────────────── */
+
+.app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-dim);
+}
+
+.app-header .title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--cyan);
+    letter-spacing: 2px;
+}
+
+.app-header .quote {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--fg-dim);
+    max-width: 400px;
+    text-align: right;
+}
+
+/* ── Navigation ────────────────────────────────────────────── */
+
+.nav-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--bg-panel);
+    border-bottom: 2px solid var(--border-dim);
+}
+
+.nav-tabs a {
+    padding: 10px 24px;
+    color: var(--cyan);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-right: 1px solid var(--border-dim);
+    transition: background 0.2s, color 0.2s;
+}
+
+.nav-tabs a:hover {
+    background: var(--glow);
+    color: var(--magenta);
+}
+
+.nav-tabs a.active {
+    background: var(--bg);
+    color: var(--fg);
+    border-bottom: 2px solid var(--fg);
+    margin-bottom: -2px;
+}
+
+/* ── Main Content ──────────────────────────────────────────── */
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    position: relative;
+    overflow-y: auto;
+}
+
+/* ── Status Bar ────────────────────────────────────────────── */
+
+.status-bar {
+    display: flex;
+    align-items: center;
+    padding: 6px 20px;
+    border-top: 1px solid var(--border-dim);
+    font-size: 11px;
+}
+
+.status-bar .label {
+    color: var(--cyan-dim);
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.status-bar .value {
+    color: var(--fg);
+}
+
+/* ── Home: Digital Rain Canvas ─────────────────────────────── */
+
+.home-container {
+    position: relative;
+    text-align: center;
+}
+
+#matrix-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.home-overlay {
+    position: relative;
+    z-index: 1;
+    padding-top: 20px;
+}
+
+.ascii-banner {
+    color: var(--fg);
+    font-size: 10px;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    text-shadow: 0 0 8px var(--glow);
+}
+
+.tagline {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+}
+
+.divider {
+    color: var(--border-dim);
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.home-prompt {
+    color: var(--magenta);
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* ── Neon Button ───────────────────────────────────────────── */
+
+.neon-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--cyan);
+    background: var(--bg-panel);
+    border: 2px solid var(--cyan);
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    position: relative;
+    text-align: center;
+}
+
+.neon-btn::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px dashed var(--cyan);
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.neon-btn:hover {
+    color: #fff;
+    border-color: var(--magenta);
+    box-shadow: 0 0 12px var(--magenta-dim), inset 0 0 12px rgba(255, 0, 255, 0.05);
+    text-shadow: 0 0 6px var(--magenta);
+}
+
+.neon-btn:hover::after {
+    border-color: var(--magenta);
+    opacity: 0.6;
+}
+
+.neon-btn:active {
+    transform: scale(0.97);
+}
+
+.neon-btn.green  { color: var(--fg);     border-color: var(--fg); }
+.neon-btn.green::after { border-color: var(--fg); }
+.neon-btn.yellow { color: var(--yellow); border-color: var(--yellow); }
+.neon-btn.yellow::after { border-color: var(--yellow); }
+.neon-btn.orange { color: var(--orange); border-color: var(--orange); }
+.neon-btn.orange::after { border-color: var(--orange); }
+.neon-btn.red    { color: var(--red);    border-color: var(--red); }
+.neon-btn.red::after { border-color: var(--red); }
+.neon-btn.magenta { color: var(--magenta); border-color: var(--magenta); }
+.neon-btn.magenta::after { border-color: var(--magenta); }
+.neon-btn.cyan    { color: var(--cyan);    border-color: var(--cyan); }
+.neon-btn.cyan::after { border-color: var(--cyan); }
+.neon-btn.wide   { width: 100%; }
+
+/* ── Button Grid ───────────────────────────────────────────── */
+
+.btn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.btn-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 900px;
+}
+
+.btn-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+/* ── Panel / Card ──────────────────────────────────────────── */
+
+.panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.panel-header {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+/* ── Input Fields ──────────────────────────────────────────── */
+
+.cyber-input {
+    background: var(--bg-input);
+    color: var(--fg);
+    border: 1px solid var(--border-dim);
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.cyber-input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 6px rgba(0, 255, 255, 0.15);
+}
+
+.cyber-input::placeholder {
+    color: var(--fg-dim);
+    opacity: 0.6;
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-row .label {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* ── Radio Buttons ─────────────────────────────────────────── */
+
+.cyber-radio-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.cyber-radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: var(--cyan);
+    font-size: 12px;
+}
+
+.cyber-radio input[type="radio"] {
+    accent-color: var(--cyan);
+}
+
+/* ── Recon Phase Card ──────────────────────────────────────── */
+
+.phase-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 12px 16px;
+    margin-bottom: 10px;
+}
+
+.phase-card .phase-title {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.phase-card .phase-cmd {
+    color: var(--fg);
+    font-size: 12px;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.phase-card .phase-cmd.unavailable {
+    color: var(--red);
+}
+
+.phase-cmd-edit {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    margin-bottom: 8px;
+}
+
+.phase-cmd-edit .phase-cmd-input {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+.phase-card .phase-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.phase-card .phase-actions .neon-btn {
+    padding: 6px 14px;
+    font-size: 11px;
+}
+
+/* ── Terminal ──────────────────────────────────────────────── */
+
+.terminal-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 160px);
+}
+
+.terminal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 8px 14px;
+    margin-bottom: 4px;
+}
+
+.terminal-header .label {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.terminal-output {
+    flex: 1;
+    background: #050505;
+    border: 1px solid var(--border-dim);
+    padding: 12px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-output .line-phase {
+    color: var(--cyan);
+    font-weight: bold;
+}
+
+.terminal-output .line-cmd {
+    color: var(--yellow);
+}
+
+.terminal-output .line-error {
+    color: var(--red);
+}
+
+.terminal-output .line-success {
+    color: var(--fg-bright);
+}
+
+/* ── Progress Bar ─────────────────────────────────────────── */
+
+.progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 8px 14px;
+    margin-bottom: 4px;
+}
+
+.progress-label {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 11px;
+    white-space: nowrap;
+    min-width: 160px;
+    letter-spacing: 1px;
+}
+
+.progress-track {
+    flex: 1;
+    height: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border-dim);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--fg);
+    box-shadow: 0 0 8px var(--fg), 0 0 16px var(--glow);
+    transition: width 0.4s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.6));
+    animation: progress-glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes progress-glow {
+    from { opacity: 0.3; }
+    to   { opacity: 1; }
+}
+
+/* ── Report Actions ───────────────────────────────────────── */
+
+.report-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 8px 14px;
+    margin-top: 4px;
+}
+
+.report-actions .label {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* ── Findings Summary Panel ────────────────────────────────── */
+
+.findings-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 12px 16px;
+    margin-top: 6px;
+}
+
+.findings-list {
+    margin-top: 6px;
+}
+
+.finding-item {
+    font-size: 12px;
+    padding: 3px 0;
+    color: var(--fg);
+}
+
+.finding-label {
+    color: var(--cyan);
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+/* ── Next Steps Panel ─────────────────────────────────────── */
+
+.next-steps-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 12px 16px;
+    margin-top: 6px;
+}
+
+.next-step-card {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-dim);
+}
+
+.next-step-card:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.next-step-reason {
+    font-size: 11px;
+    color: var(--fg-dim);
+    margin-bottom: 4px;
+}
+
+.next-step-cmd-row {
+    display: flex;
+    align-items: center;
+}
+
+.next-step-cmd-row .next-step-input {
+    flex: 1;
+    font-size: 12px;
+    padding: 5px 8px;
+}
+
+/* ── Pre-flight Checks ────────────────────────────────────── */
+
+.preflight-warning {
+    background: rgba(255, 0, 64, 0.08);
+    border-left: 3px solid var(--red);
+    color: var(--red);
+    padding: 8px 14px;
+    font-size: 12px;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+}
+
+.preflight-info {
+    background: rgba(0, 255, 65, 0.06);
+    border-left: 3px solid var(--fg);
+    color: var(--fg);
+    padding: 8px 14px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+/* ── Settings ──────────────────────────────────────────────── */
+
+.settings-row {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+}
+
+.settings-row .key {
+    color: var(--cyan-dim);
+    font-weight: bold;
+    min-width: 180px;
+    text-align: right;
+}
+
+.settings-row .val {
+    color: var(--fg);
+}
+
+.settings-quote {
+    color: var(--fg-dim);
+    font-style: italic;
+    text-align: center;
+    margin-top: 40px;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+/* ── Section Headings ──────────────────────────────────────── */
+
+.section-title {
+    color: var(--cyan);
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.section-divider {
+    color: var(--border-dim);
+    margin-bottom: 14px;
+    font-size: 13px;
+}
+
+/* ── Loading Spinner ───────────────────────────────────────── */
+
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--fg-dim);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── CRT Scanline Overlay ──────────────────────────────────── */
+
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0, 0, 0, 0.06) 3px,
+        rgba(0, 0, 0, 0.06) 4px
+    );
+}
+
+/* ── Phase Confirm Panel ──────────────────────────────────── */
+
+#phase-confirm-panel {
+    animation: confirmPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes confirmPulse {
+    from { box-shadow: 0 0 6px rgba(255, 255, 0, 0.3); }
+    to   { box-shadow: 0 0 16px rgba(255, 255, 0, 0.6); }
+}
+
+#phase-confirm-panel .panel-header {
+    margin-bottom: 6px;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .btn-grid, .btn-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .app-header {
+        flex-direction: column;
+        gap: 6px;
+    }
+    .app-header .quote {
+        text-align: center;
+        max-width: none;
+    }
+    .nav-tabs {
+        flex-wrap: wrap;
+    }
+    .ascii-banner {
+        font-size: 6px;
+    }
+}

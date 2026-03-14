@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% set active = "terminal" %}
+
+{% block content %}
+<div class="terminal-container">
+    <div class="terminal-header">
+        <span class="label">TERMINAL OUTPUT  //  LIVE FEED</span>
+        <button class="neon-btn red" id="clear-terminal"
+                style="padding: 4px 14px; font-size: 11px;">CLEAR</button>
+    </div>
+
+    <div class="progress-bar-container" id="progress-container">
+        <div class="progress-label" id="progress-label">IDLE</div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div class="terminal-output" id="terminal-output" data-job-id="{{ job_id }}"></div>
+
+    <div class="report-actions" id="report-actions" style="display: none;">
+        <span class="label">SAVE REPORT:</span>
+        <button class="neon-btn green" id="report-md"
+                style="padding: 6px 16px; font-size: 11px;">MARKDOWN (.md)</button>
+        <button class="neon-btn" id="report-html"
+                style="padding: 6px 16px; font-size: 11px;">HTML (.html)</button>
+    </div>
+
+    <!-- Findings Summary (populated by JS after scan completes) -->
+    <div class="findings-panel" id="findings-panel" style="display: none;"></div>
+
+    <!-- Next Steps (populated by JS after scan completes) -->
+    <div class="next-steps-panel" id="next-steps-panel" style="display: none;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
+{% endblock %}

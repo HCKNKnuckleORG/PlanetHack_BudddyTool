@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% set active = "support" %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="section-title">[ SUPPORT / ISSUE TICKET ]</div>
+    <div class="section-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+    <div class="panel" style="margin-bottom: 14px;">
+        <div class="panel-header" style="color:var(--cyan);">[ HOW TO REPORT A BUG FAST ]</div>
+        <div style="font-size:12px;color:var(--fg);padding:8px 10px;">
+            Include: <span style="color:var(--yellow);">what you did</span>, <span style="color:var(--yellow);">what you expected</span>,
+            <span style="color:var(--yellow);">what actually happened</span>, and any <span style="color:var(--yellow);">error output</span>.
+            If it’s recon-related, include the target type (IP vs hostname) and whether /etc/hosts was involved.
+        </div>
+    </div>
+
+    <form id="support-form">
+        <div class="panel">
+            <div class="input-row" style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                <span class="label" style="min-width:110px;color:var(--fg-dim);">TYPE &gt;</span>
+                <select name="type" class="cyber-input" style="max-width:240px;">
+                    <option value="bug" selected>Bug</option>
+                    <option value="feature">Feature request</option>
+                    <option value="question">Question</option>
+                </select>
+                <span class="label" style="min-width:120px;color:var(--fg-dim);">COMPONENT &gt;</span>
+                <select name="component" class="cyber-input" style="max-width:260px;">
+                    <option value="web" selected>Web UI (Flask)</option>
+                    <option value="gui">GUI (Tkinter)</option>
+                    <option value="cli">CLI</option>
+                    <option value="recon">Recon workflow</option>
+                    <option value="modules">Modules</option>
+                    <option value="docker">Docker</option>
+                    <option value="frontend">TypeScript SPA</option>
+                </select>
+            </div>
+
+            <div class="input-row" style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                <span class="label" style="min-width:110px;color:var(--fg-dim);">TITLE &gt;</span>
+                <input name="title" type="text" class="cyber-input" placeholder="Short summary (5–200 chars)" required
+                       maxlength="200" minlength="5" style="max-width:none;flex:1;">
+                <span class="char-count" id="title-count" style="font-size:10px;color:var(--fg-dim);">0/200</span>
+            </div>
+
+            <div class="input-row" style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                <span class="label" style="min-width:110px;color:var(--fg-dim);">TARGET &gt;</span>
+                <input name="target" type="text" class="cyber-input" placeholder="(optional) IP / hostname / URL"
+                       maxlength="500" style="max-width:none;flex:1;">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+                <div>
+                    <div style="font-size:11px;color:var(--fg-dim);margin-bottom:4px;">STEPS TO REPRODUCE (max 10000 chars)</div>
+                    <textarea name="steps" class="cyber-input" rows="5" style="width:100%;max-width:none;"
+                              maxlength="10000" placeholder="1) ...&#10;2) ...&#10;3) ..."></textarea>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:var(--fg-dim);margin-bottom:4px;">EXPECTED (max 10000 chars)</div>
+                    <textarea name="expected" class="cyber-input" rows="3" style="width:100%;max-width:none;"
+                              maxlength="10000" placeholder="What should have happened?"></textarea>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:var(--fg-dim);margin-bottom:4px;">ACTUAL (max 10000 chars)</div>
+                    <textarea name="actual" class="cyber-input" rows="3" style="width:100%;max-width:none;"
+                              maxlength="10000" placeholder="What happened instead? Include errors."></textarea>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;margin-top:12px;">
+                <button type="submit" class="neon-btn green" id="support-submit">SUBMIT TICKET</button>
+                <span id="support-status" style="font-size:11px;color:var(--fg-dim);"></span>
+            </div>
+        </div>
+    </form>
+
+    <div id="support-result" class="panel" style="display:none;margin-top:12px;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var form = document.getElementById("support-form");
+  if (!form) return;
+  var btn = document.getElementById("support-submit");
+  var status = document.getElementById("support-status");
+  var result = document.getElementById("support-result");
+  var titleInput = form.querySelector('input[name="title"]');
+  var titleCount = document.getElementById("title-count");
+
+  var LIMITS = { title: 200, target: 500, steps: 10000, expected: 10000, actual: 10000 };
+
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = s == null ? "" : String(s);
+    return d.innerHTML;
+  }
+
+  function validate() {
+    var title = (titleInput && titleInput.value || "").trim();
+    if (title.length < 5) return "Title must be at least 5 characters";
+    if (title.length > 200) return "Title must be at most 200 characters";
+    if (/\.\.\/|\.\.\\/.test(title)) return "Title contains invalid characters";
+    var typeVal = form.querySelector('select[name="type"]').value;
+    if (!["bug","feature","question"].includes(typeVal)) return "Invalid type";
+    var compVal = form.querySelector('select[name="component"]').value;
+    var allowed = ["web","gui","cli","recon","modules","docker","frontend"];
+    if (!allowed.includes(compVal)) return "Invalid component";
+    return null;
+  }
+
+  if (titleInput && titleCount) {
+    titleInput.addEventListener("input", function () {
+      titleCount.textContent = (titleInput.value.length) + "/200";
+    });
+    titleInput.dispatchEvent(new Event("input"));
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var err = validate();
+    if (err) {
+      if (status) status.textContent = "Validation: " + err;
+      if (status) status.style.color = "var(--red)";
+      return;
+    }
+    if (status) status.style.color = "";
+    if (btn) btn.disabled = true;
+    if (status) status.textContent = "Submitting...";
+
+    var fd = new FormData(form);
+    var payload = {};
+    fd.forEach(function (v, k) {
+      var s = String(v || "").trim();
+      var max = LIMITS[k];
+      payload[k] = max ? s.substring(0, max) : s;
+    });
+
+    fetch("/support/ticket", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.error) throw new Error(data.error);
+      if (status) status.textContent = "Saved.";
+      if (result) {
+        result.style.display = "block";
+        result.innerHTML =
+          '<div class="panel-header" style="color:var(--green);">[ TICKET SAVED ]</div>' +
+          '<div style="font-size:12px;padding:8px 10px;">' +
+            '<div><span style="color:var(--cyan);">ID:</span> ' + esc(data.ticket_id) + '</div>' +
+            '<div><span style="color:var(--cyan);">FILE:</span> ' + esc(data.path) + '</div>' +
+            '<div style="margin-top:8px;color:var(--fg-dim);font-size:11px;">Copy/paste this file into GitHub Issues later if you want.</div>' +
+          '</div>';
+      }
+      form.reset();
+      if (titleCount) titleCount.textContent = "0/200";
+    })
+    .catch(function (err) {
+      if (status) status.textContent = "Error: " + esc(err && err.message ? err.message : String(err));
+      if (status) status.style.color = "var(--red)";
+    })
+    .finally(function () {
+      if (btn) btn.disabled = false;
+    });
+  });
+})();
+</script>
+{% endblock %}
+

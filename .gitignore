@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+.venv
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+vendor/
+
+# IDE / Editor (keep repo app-only)
+.vscode/
+.idea/
+.cursor/
+.cursorignore
+.cursorrules
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Project specific - keep config.example.yaml, ignore local overrides
+config/config.yaml
+
+# Session data (scan results, targets)
+sessions/
+
+# Generated reports (contain target IPs, scan output)
+reports/
+
+# Support tickets (local)
+issues/
+config/local.yaml
+config/local.yml
+
+# Node
+node_modules/
+frontend/dist/
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.cert
+*.p12
+

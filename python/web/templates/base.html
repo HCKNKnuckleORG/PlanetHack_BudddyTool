@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANETHACK // HACK THE PLANET</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cyber.css') }}">
+</head>
+<body>
+    <div class="crt-overlay"></div>
+
+    <div class="app-wrapper">
+        <div class="app-header">
+            <div class="title" id="header-title">[ PLANETHACK ]</div>
+            <div class="quote" id="header-quote"></div>
+        </div>
+
+        <nav class="nav-tabs">
+            <a href="{{ url_for('home') }}" class="{% if active == 'home' %}active{% endif %}">  HOME  </a>
+            <a href="{{ url_for('recon') }}" class="{% if active == 'recon' %}active{% endif %}">  RECON  </a>
+            <a href="{{ url_for('modules') }}" class="{% if active == 'modules' %}active{% endif %}">  MODULES  </a>
+            <a href="{{ url_for('report_history') }}" class="{% if active == 'report_history' %}active{% endif %}">  REPORT HISTORY  </a>
+            <a href="{{ url_for('terminal') }}" class="{% if active == 'terminal' %}active{% endif %}">  TERMINAL  </a>
+            <a href="{{ url_for('support') }}" class="{% if active == 'support' %}active{% endif %}">  SUPPORT  </a>
+            <a href="{{ url_for('about') }}" class="{% if active == 'about' %}active{% endif %}">  ABOUT  </a>
+        </nav>
+
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <div class="status-bar">
+            <span class="label">STATUS &gt;</span>
+            <span class="value" id="status-value">SYSTEM ONLINE -- READY</span>
+            <span style="margin-left: auto; color: #00aaaa; font-size: 10px;">
+                by HCKNKnuckle
+            </span>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

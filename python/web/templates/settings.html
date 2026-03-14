@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% set active = "about" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="section-title">[ ABOUT ]</div>
+    <div class="section-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+    <div class="settings-row"><span class="key">VERSION:</span><span class="val">1.0.0</span></div>
+    <div class="settings-row"><span class="key">AUTHOR:</span><span class="val">HCKNKnuckle</span></div>
+    <div class="settings-row"><span class="key">PURPOSE:</span><span class="val">CTFs & lab boxes — Hack The Box, TryHackMe, PwnLab, VulnHub, bug bounty</span></div>
+    <div class="settings-row"><span class="key">THEME:</span><span class="val">Hackers x Swordfish x Matrix</span></div>
+    <div class="settings-row"><span class="key">ENGINE:</span><span class="val">Python / Flask / Go / TypeScript (React)</span></div>
+    <div class="settings-row"><span class="key">INTERFACE:</span><span class="val">React SPA + Flask API</span></div>
+    <div class="settings-row"><span class="key">PLATFORM:</span><span class="val">Kali Linux / WSL / Docker</span></div>
+    <div class="settings-row"><span class="key">KEY TOOLS:</span><span class="val">nmap, nikto, gobuster, whatweb, nuclei</span></div>
+    <div class="settings-row"><span class="key">LICENSE:</span><span class="val">MIT</span></div>
+
+    <div class="settings-quote">
+        "We are samurai, the keyboard cowboys..."<br>
+        -- The Plague, Hackers (1995)
+    </div>
+
+    <div style="margin-top: 16px; font-size: 10px; color: var(--fg-dim);">
+        Authorized security testing only. Use on systems you own or have explicit permission to test.
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% set active = "recon" %}
+
+{% block content %}
+<div style="max-width: 960px; margin: 0 auto;">
+    <a href="{{ url_for('home') }}" class="neon-btn" style="padding: 6px 14px; font-size: 11px; margin-bottom: 16px; display: inline-block;">
+        &lt; BACK
+    </a>
+
+    <div class="section-title">[ RECONNAISSANCE MODULE ]</div>
+    <div class="section-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+    <form id="recon-form">
+        <div class="panel">
+            <div class="input-row">
+                <span class="label">TARGET &gt;</span>
+                <input type="text" name="target" class="cyber-input"
+                       placeholder="IP address, domain, or URL" required autocomplete="off">
+            </div>
+        </div>
+
+        <div style="margin: 12px 0;">
+            <span style="color: var(--fg-dim); font-weight: bold; font-size: 12px;">PRESET:</span>
+            <div class="cyber-radio-group" style="margin-top: 6px;">
+                <label class="cyber-radio">
+                    <input type="radio" name="preset" value="full" checked> FULL RECON
+                </label>
+                <label class="cyber-radio">
+                    <input type="radio" name="preset" value="htb"> HTB / CTF
+                </label>
+                <label class="cyber-radio">
+                    <input type="radio" name="preset" value="web"> WEB FOCUS
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="neon-btn green wide" style="margin: 16px 0;">
+            >>> BUILD RECON PLAN <<<
+        </button>
+    </form>
+
+    <div id="recon-plan"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+# PlanetHack Configuration Example
+# Copy to config.yaml and customize. Never commit config.yaml if it contains secrets.
+# Run: python main.py --setup  to check/install required tools.
+
+# Tool requirements for setup check (run: python main.py --setup)
+# On Kali/Debian, missing tools can be installed via apt
+setup:
+  tools_required:
+    nmap: { package: "nmap", category: "recon", description: "Port scanning" }
+    nikto: { package: "nikto", category: "recon", description: "Web vulnerability scanner" }
+    gobuster: { package: "gobuster", category: "recon", description: "Directory brute force" }
+    whatweb: { package: "whatweb", category: "recon", description: "Web tech fingerprinting" }
+    nuclei: { package: "nuclei", category: "recon", description: "Vulnerability templates" }
+    feroxbuster: { package: "feroxbuster", category: "recon", fallback_for: "gobuster", description: "Directory brute force (alt)" }
+    dirb: { package: "dirb", category: "recon", fallback_for: "gobuster", description: "Directory brute force (alt)" }
+    sqlmap: { package: "sqlmap", category: "sql", description: "SQL injection" }
+    hydra: { package: "hydra", category: "brute_force", description: "Password brute force" }
+
+app:
+  name: "PlanetHack"
+  version: "1.0.0"
+  theme: "80s_hacker"
+
+logging:
+  level: "INFO"
+  file: "logs/planethack.log"
+
+# Override module settings - all enabled by default
+modules:
+  recon:
+    enabled: true
+    subdomain_enum: true
+    port_scan: true
+    dir_brute: false
+  sql:
+    enabled: true
+    payloads_file: "config/payloads/sql.txt"
+  xss:
+    enabled: true
+    payloads_file: "config/payloads/xss.txt"
+  # ... other modules follow same pattern
+
+tools:
+  nmap:
+    path: "nmap"
+    args: "-sC -sV"
+  sqlmap:
+    path: "sqlmap"
+    args: "--batch --level=3 --risk=2"
+  kali:
+    wordlist_dir: "/usr/share/wordlists"
+    gobuster_wordlist: "/usr/share/wordlists/dirb/common.txt"
+    users_wordlist: "/usr/share/wordlists/metasploit/unix_users.txt"
+    passwords_wordlist: "/usr/share/wordlists/rockyou.txt"
+
+# Ollama - local LLM for AI-assisted next steps (optional)
+# Python: http://localhost:11434 | Docker: http://ollama:11434
+# ollama:
+#   enabled: false
+#   url: "http://localhost:11434"
+#   model: "llama3"
+
+gui:
+  theme: "80s_hacker"
+  colors:
+    bg: "#000000"
+    fg: "#00FF00"
+    accent: "#00FFFF"
+    warning: "#FFFF00"
+    error: "#FF0000"

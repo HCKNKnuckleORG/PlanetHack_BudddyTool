@@ -1,0 +1,7 @@
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.ollama.yml --profile ollama up -d
+# Runs PlanetHack + Ollama. PlanetHack will use OLLAMA_URL=http://ollama:11434.
+
+services:
+  planet-hack:
+    environment:
+      - OLLAMA_URL=http://ollama:11434

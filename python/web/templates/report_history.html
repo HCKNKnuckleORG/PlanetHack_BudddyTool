@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% set active = "report_history" %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+    <a href="{{ url_for('home') }}" class="neon-btn" style="padding: 6px 14px; font-size: 11px; margin-bottom: 16px; display: inline-block;">
+        &lt; BACK TO HOME
+    </a>
+
+    <div class="section-title">[ REPORT DASHBOARD ]</div>
+    <div class="section-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+    {% if not has_data %}
+    <div class="panel" style="border-color: var(--yellow); text-align: center; padding: 32px;">
+        <p style="color: var(--yellow); font-size: 14px; margin-bottom: 16px;">No data yet. Run a module (e.g. RECON) from Modules.</p>
+        <a href="{{ url_for('modules') }}" class="neon-btn green" style="padding: 10px 24px;">GO TO MODULES</a>
+    </div>
+    {% else %}
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 20px;">
+        <div class="panel" style="flex: 1 1 280px;">
+            <div class="panel-header" style="color: var(--cyan); font-size: 11px;">EXPORT</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 8px;">
+                <button type="button" class="neon-btn green" id="copy-bounty-btn" style="padding: 6px 12px; font-size: 11px;">COPY FOR BOUNTY</button>
+                <a href="/session/report?format=md" target="_blank" class="neon-btn" style="padding: 6px 12px; font-size: 11px; text-decoration: none;">SAVE .MD</a>
+                <a href="/session/report?format=html" target="_blank" class="neon-btn" style="padding: 6px 12px; font-size: 11px; text-decoration: none;">SAVE .HTML</a>
+            </div>
+        </div>
+        <div class="panel" style="flex: 1 1 280px;">
+            <div class="panel-header" style="color: var(--accent); font-size: 11px;">TARGET</div>
+            <div style="padding: 8px 12px; color: var(--green); font-family: monospace; font-size: 14px;">{{ target or '—' }}</div>
+            {% if log_path %}<div style="padding: 0 12px 8px; font-size: 10px; color: var(--fg-dim);">Log: {{ log_path }}</div>{% endif %}
+        </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 20px; margin-bottom: 12px; font-size: 13px;">[ WHAT EACH TOOL FOUND ]</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-bottom: 24px;">
+        {% for tool in summary.tools_run or [] %}
+        {% set fd = findings_by_tool.get(tool, {}) %}
+        {% if fd %}
+        <div class="panel" style="border-color: var(--fg-dim);">
+            <div class="panel-header" style="color: var(--cyan); font-size: 12px; border-bottom: 1px solid rgba(0,255,65,0.2); padding-bottom: 6px;">
+                {{ tool | upper }}
+            </div>
+            <div style="padding: 10px 12px; font-size: 12px;">
+                {% if tool == 'nmap' and fd.ports %}
+                <div style="color: var(--fg-dim); margin-bottom: 4px;">Open ports</div>
+                <div style="margin-bottom: 6px;">
+                    {% for p in fd.ports[:12] %}
+                    <span style="display: inline-block; margin: 2px 4px 2px 0; padding: 2px 6px; background: rgba(0,255,65,0.1); border-radius: 2px; font-size: 11px;">{{ p.port }}/{{ p.proto }}</span>
+                    {% endfor %}
+                    {% if fd.ports | length > 12 %}<span style="color: var(--fg-dim); font-size: 11px;">+{{ fd.ports | length - 12 }} more</span>{% endif %}
+                </div>
+                {% if fd.scan_target %}<div style="font-size: 10px; color: var(--fg-dim);">Scan target: {{ fd.scan_target }}</div>{% endif %}
+                {% if fd.redirect_hostname %}<div style="font-size: 10px; color: var(--yellow);">Redirect: {{ fd.redirect_hostname }}</div>{% endif %}
+                {% elif tool == 'whatweb' and fd.technologies %}
+                <div>{{ fd.technologies[:10] | join(', ') }}{% if fd.technologies | length > 10 %} (+{{ fd.technologies | length - 10 }}){% endif %}</div>
+                {% elif tool == 'nikto' and fd.findings %}
+                <div style="color: var(--fg-dim); margin-bottom: 4px;">{{ fd.count }} finding(s)</div>
+                <ul style="margin: 0; padding-left: 16px; max-height: 100px; overflow: auto; font-size: 11px;">
+                    {% for f in fd.findings[:5] %}<li>{{ f.detail[:60] }}{% if f.detail | length > 60 %}…{% endif %}</li>{% endfor %}
+                    {% if fd.findings | length > 5 %}<li style="color: var(--fg-dim);">+{{ fd.findings | length - 5 }} more</li>{% endif %}
+                </ul>
+                {% elif tool in ['gobuster', 'feroxbuster', 'dirb'] and (fd.directories or fd.findings) %}
+                {% set dirs = fd.directories or fd.findings or [] %}
+                <div style="color: var(--fg-dim); margin-bottom: 4px;">{{ fd.count }} path(s) discovered</div>
+                <ul style="margin: 0; padding-left: 16px; max-height: 80px; overflow: auto; font-size: 11px; font-family: monospace;">
+                    {% for d in dirs[:6] %}<li>{{ d.path or d }}{% if d.status %} [{{ d.status }}]{% endif %}</li>{% endfor %}
+                    {% if dirs | length > 6 %}<li style="color: var(--fg-dim);">+{{ dirs | length - 6 }} more</li>{% endif %}
+                </ul>
+                {% elif tool == 'nuclei' and fd.findings %}
+                <div style="color: var(--fg-dim); margin-bottom: 4px;">{{ fd.count }} total, {{ fd.critical_high or 0 }} critical/high</div>
+                <ul style="margin: 0; padding-left: 16px; max-height: 100px; overflow: auto; font-size: 11px;">
+                    {% for f in fd.findings[:5] %}<li>{{ f.detail[:55] }}{% if f.detail | length > 55 %}…{% endif %} {% if f.severity %}<span style="color: {% if f.severity in ['critical','high'] %}var(--error){% else %}var(--fg-dim){% endif %}">[{{ f.severity }}]</span>{% endif %}</li>{% endfor %}
+                    {% if fd.findings | length > 5 %}<li style="color: var(--fg-dim);">+{{ fd.findings | length - 5 }} more</li>{% endif %}
+                </ul>
+                {% else %}
+                <div style="color: var(--fg-dim); font-size: 11px;">{{ fd.summary or '—' }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if next_steps %}
+    <div class="section-title" style="margin-bottom: 12px; font-size: 13px;">[ NEXT ATTACK DIRECTION ]</div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+        {% for step in next_steps %}
+        <div class="panel" style="border-left: 3px solid var(--accent); padding: 12px 14px;">
+            <div class="next-step-reason" style="color: var(--fg); margin-bottom: 6px; font-size: 13px;">{{ step.reason }}</div>
+            <div style="font-family: monospace; font-size: 11px; color: var(--yellow); background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 2px; word-break: break-all;">$ {{ step.command }}</div>
+            <div style="margin-top: 8px; display: flex; gap: 8px;">
+                <a href="/terminal" class="neon-btn green next-run-link" data-cmd="{{ step.command | tojson }}" data-target="{{ target | tojson }}" style="padding: 4px 10px; font-size: 11px; text-decoration: none;">RUN</a>
+                <button type="button" class="neon-btn copy-cmd-btn" data-cmd="{{ step.command | tojson }}" style="padding: 4px 10px; font-size: 11px;">COPY</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <details class="panel" style="margin-top: 16px;">
+        <summary style="cursor: pointer; padding: 8px 12px; color: var(--fg-dim); font-size: 11px;">▶ RAW SOURCE (JSON)</summary>
+        <pre style="margin: 0; padding: 12px; background: #0d1117; overflow: auto; font-size: 11px; max-height: 400px; border-top: 1px solid rgba(0,255,65,0.15);">{{ {'summary': summary, 'findings_by_tool': findings_by_tool, 'next_steps': next_steps, 'target': target} | tojson(indent=2) }}</pre>
+    </details>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if has_data %}
+<script>
+(function () {
+    var copyBtn = document.getElementById("copy-bounty-btn");
+    if (copyBtn) {
+        var summary = {{ summary | tojson }};
+        var nextSteps = {{ next_steps | tojson }};
+        var target = {{ target | tojson }};
+
+        function buildBountyText() {
+            var lines = ["# Recon Report — Bug Bounty", "", "## Target", target || "—", "", "## Summary", ""];
+            if (summary.ports && summary.ports.length) {
+                lines.push("**Open ports:** " + summary.ports.slice(0, 15).map(function (p) { return p.port + "/" + p.proto; }).join(", "));
+            }
+            if (summary.technologies && summary.technologies.length) {
+                lines.push("**Technologies:** " + summary.technologies.slice(0, 12).join(", "));
+            }
+            if (summary.vulnerabilities && summary.vulnerabilities.length) {
+                lines.push("**Findings:** " + summary.vulnerabilities.length + " items from scan.");
+            }
+            lines.push("", "## Recommended next steps", "");
+            (nextSteps || []).forEach(function (step) {
+                lines.push("- " + step.reason);
+                lines.push("  ```\n  " + step.command + "\n  ```");
+            });
+            return lines.join("\n");
+        }
+
+        copyBtn.addEventListener("click", function () {
+            navigator.clipboard.writeText(buildBountyText()).then(function () {
+                copyBtn.textContent = "COPIED!";
+                var sv = document.getElementById("status-value");
+                if (sv) sv.textContent = "CLIPBOARD > Bug bounty report copied";
+                setTimeout(function () { copyBtn.textContent = "COPY FOR BOUNTY"; }, 2000);
+            });
+        });
+    }
+
+    function parseAttr(val) {
+        if (!val) return "";
+        try { return JSON.parse(val); } catch (e) { return val; }
+    }
+
+    document.querySelectorAll(".copy-cmd-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var cmd = parseAttr(btn.getAttribute("data-cmd")) || "";
+            navigator.clipboard.writeText(cmd).then(function () {
+                var sv = document.getElementById("status-value");
+                if (sv) sv.textContent = "COPIED > " + cmd.slice(0, 40) + "...";
+            });
+        });
+    });
+
+    document.querySelectorAll(".next-run-link").forEach(function (a) {
+        a.addEventListener("click", function (e) {
+            var cmd = parseAttr(a.getAttribute("data-cmd")) || "";
+            var target = parseAttr(a.getAttribute("data-target")) || "";
+            if (!cmd) return;
+            e.preventDefault();
+            fetch("/nextsteps/execute", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ command: cmd, target: target }),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.job_id) window.location.href = "/terminal?job=" + data.job_id;
+            });
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

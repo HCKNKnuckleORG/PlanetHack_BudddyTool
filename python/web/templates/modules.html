@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set active = "modules" %}
+
+{% block content %}
+<div style="max-width: 960px; margin: 0 auto;">
+    <div class="section-title">[ ARSENAL -- SELECT MODULE ]</div>
+    <div class="section-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+    <div class="panel" style="margin-bottom: 16px;">
+        <div class="input-row">
+            <span class="label">TARGET &gt;</span>
+            <input type="text" id="module-target" class="cyber-input"
+                   placeholder="IP address, domain, or URL" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="btn-grid btn-grid-4" id="module-grid">
+        {% for name, mid, color in modules %}
+        <button class="neon-btn module-btn" data-module="{{ mid }}"
+                style="color: {{ color }}; border-color: {{ color }};">
+            {{ name }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
