@@ -3,6 +3,9 @@ PlanetHack REST API v1 - API-first endpoints for TypeScript/SPA consumption.
 All routes return JSON. CORS enabled for frontend dev server.
 """
 
+import os
+import re
+
 from flask import Blueprint, request, jsonify, Response
 from core.recon_plan import build_recon_plan
 from core.tool_runner import resolve_tool_command
@@ -15,6 +18,13 @@ from modules import MODULE_REGISTRY
 from utils.helpers import is_ip_address, validate_url
 
 api_v1 = Blueprint("api_v1", __name__, url_prefix="/api/v1")
+
+
+def _safe_download_name(path: str) -> str:
+    """Return a header-safe attachment filename derived from a file path."""
+    name = os.path.basename(str(path))
+    name = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+    return name or "report"
 
 
 def _validate_target(target: str) -> bool:
@@ -32,16 +42,19 @@ def _validate_target(target: str) -> bool:
 
 # ── Health & Meta ─────────────────────────────────────────────────────────────
 
+
 @api_v1.route("/health", methods=["GET"])
 def health():
     version = "1.0.0"
     try:
         from pathlib import Path
+
         vf = Path(__file__).resolve().parents[2] / "VERSION"
         if vf.exists():
             version = vf.read_text().strip() or version
         else:
             from flask import current_app
+
             cfg = current_app.config.get("PH_CONFIG")
             if cfg:
                 version = (cfg.get("app", {}) or {}).get("version", version)
@@ -53,6 +66,7 @@ def health():
 @api_v1.route("/quote", methods=["GET"])
 def quote():
     import random
+
     quotes = [
         {"quote": "Hack the Planet!", "movie": "Hackers"},
         {"quote": "Mess with the best, die like the rest.", "movie": "Hackers"},
@@ -70,11 +84,13 @@ def modules_ready():
     target = request.args.get("target", "").strip() or _session_log.target or ""
     findings = _session_log.get_findings_raw()
     ready, not_ready = evaluate_readiness(findings, target)
-    return jsonify({
-        "ready": ready,
-        "not_ready": not_ready,
-        "target": _session_log.target or "",
-    })
+    return jsonify(
+        {
+            "ready": ready,
+            "not_ready": not_ready,
+            "target": _session_log.target or "",
+        }
+    )
 
 
 @api_v1.route("/modules/<module_id>/command", methods=["GET"])
@@ -86,6 +102,7 @@ def module_default_command(module_id):
     config = None
     try:
         from flask import current_app
+
         config = current_app.config.get("PH_CONFIG")
     except Exception:
         pass
@@ -139,6 +156,7 @@ def list_modules():
 
 # ── Recon ─────────────────────────────────────────────────────────────────────
 
+
 @api_v1.route("/recon/preflight", methods=["POST"])
 def recon_preflight():
     data = request.get_json(silent=True) or {}
@@ -165,6 +183,7 @@ def recon_add_host():
 def recon_plan():
     def _config():
         from flask import current_app
+
         return current_app.config.get("PH_CONFIG")
 
     data = request.get_json(silent=True) or {}
@@ -179,7 +198,9 @@ def recon_plan():
         phases = build_recon_plan(target, config, preset=preset)
         for phase in phases:
             cmd = resolve_tool_command(phase)
-            phase["resolved_cmd"] = phase.get("command", "(tool not found)") if not cmd else cmd
+            phase["resolved_cmd"] = (
+                phase.get("command", "(tool not found)") if not cmd else cmd
+            )
             phase["tool_available"] = cmd is not None
         return jsonify({"phases": phases, "target": target})
     except ValueError as e:
@@ -187,6 +208,7 @@ def recon_plan():
     except Exception as e:
         try:
             from flask import current_app
+
             lg = current_app.config.get("PH_LOGGER")
             if lg:
                 lg.exception(f"recon_plan failed: {e}")
@@ -214,6 +236,7 @@ def recon_execute():
     if not phases_data:
         try:
             from flask import current_app
+
             lg = current_app.config.get("PH_LOGGER")
             if lg:
                 lg.warning("recon_execute: no phases provided")
@@ -224,23 +247,31 @@ def recon_execute():
     # Rebuild plan server-side: never trust client-sent resolved_cmd (RCE prevention)
     def _config():
         from flask import current_app
+
         return current_app.config.get("PH_CONFIG")
+
     try:
         phases_data = build_recon_plan(target, _config(), preset=preset)
         for phase in phases_data:
             cmd = resolve_tool_command(phase)
-            phase["resolved_cmd"] = phase.get("command", "(tool not found)") if not cmd else cmd
+            phase["resolved_cmd"] = (
+                phase.get("command", "(tool not found)") if not cmd else cmd
+            )
             phase["tool_available"] = cmd is not None
     except (ValueError, Exception) as e:
         return jsonify({"error": str(e)}), 400
 
     from web.app import _session_log
+
     job_id = create_job(target=target)
     try:
         from flask import current_app
+
         lg = current_app.config.get("PH_LOGGER")
         if lg:
-            lg.info(f"recon_execute: job={job_id} target={target} phases={len(phases_data)}")
+            lg.info(
+                f"recon_execute: job={job_id} target={target} phases={len(phases_data)}"
+            )
     except Exception:
         pass
     job = get_job(job_id)
@@ -255,7 +286,9 @@ def recon_execute():
             cmd = phase.get("resolved_cmd")
             available = phase.get("tool_available", False)
             if not cmd or not available:
-                q.put(f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n")
+                q.put(
+                    f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n"
+                )
                 continue
 
             tool_name = phase.get("tool", "unknown")
@@ -263,7 +296,9 @@ def recon_execute():
             phase_idx += 1
             progress_msg = f"event: progress\ndata: {phase_idx}|{total}|{tool_name}|{phase.get('purpose', '')}\n\n"
             q.put(("__progress__", progress_msg))
-            q.put(f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n")
+            q.put(
+                f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n"
+            )
             q.put(f"[*] $ {cmd}\n\n")
 
             done_event = threading.Event()
@@ -282,32 +317,46 @@ def recon_execute():
 
             phase_output = "".join(phase_buf)
             collected[tool_name] = phase_output
-            _session_log.record_output(tool_name, cmd, phase_output, exit_code[0] or 0, source="recon")
-            q.put(f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n")
+            _session_log.record_output(
+                tool_name, cmd, phase_output, exit_code[0] or 0, source="recon"
+            )
+            q.put(
+                f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n"
+            )
 
             if not auto_continue:
-                confirm_data = _json.dumps({
-                    "phase": phase.get("phase", "?"),
-                    "tool": tool_name,
-                    "purpose": phase.get("purpose", ""),
-                    "exit_code": exit_code[0] or 0,
-                    "findings": SessionLog.parse_phase_summary(tool_name, phase_output),
-                    "phase_idx": phase_idx,
-                    "total": total,
-                })
-                q.put(("__progress__", f"event: phase_confirm\ndata: {confirm_data}\n\n"))
+                confirm_data = _json.dumps(
+                    {
+                        "phase": phase.get("phase", "?"),
+                        "tool": tool_name,
+                        "purpose": phase.get("purpose", ""),
+                        "exit_code": exit_code[0] or 0,
+                        "findings": SessionLog.parse_phase_summary(
+                            tool_name, phase_output
+                        ),
+                        "phase_idx": phase_idx,
+                        "total": total,
+                    }
+                )
+                q.put(
+                    ("__progress__", f"event: phase_confirm\ndata: {confirm_data}\n\n")
+                )
                 job["confirm_event"].clear()
                 job["confirm_choice"] = True
                 job["confirm_event"].wait(timeout=600)
                 if not job["confirm_choice"]:
-                    q.put(f"\n[!] === USER STOPPED AFTER PHASE {phase.get('phase', '?')} ===\n")
+                    q.put(
+                        f"\n[!] === USER STOPPED AFTER PHASE {phase.get('phase', '?')} ===\n"
+                    )
                     break
 
         job["collected_output"] = collected
         job["report"] = ReconReport(target)
         for tool, output in collected.items():
             job["report"].add_phase_output(tool, output)
-        done_progress = f"event: progress\ndata: {total}|{total}|done|ALL PHASES COMPLETE\n\n"
+        done_progress = (
+            f"event: progress\ndata: {total}|{total}|done|ALL PHASES COMPLETE\n\n"
+        )
         q.put(("__progress__", done_progress))
         q.put(None)
         job["done"] = True
@@ -319,6 +368,7 @@ def recon_execute():
 @api_v1.route("/recon/confirm/<job_id>", methods=["POST"])
 def recon_confirm(job_id):
     from web.jobs import get_job
+
     job = get_job(job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
@@ -329,6 +379,7 @@ def recon_confirm(job_id):
 
 
 # ── Modules ───────────────────────────────────────────────────────────────────
+
 
 @api_v1.route("/modules/run", methods=["POST"])
 def modules_run():
@@ -356,6 +407,7 @@ def modules_run():
         job = get_job(job_id)
         q = job["queue"]
         from web.app import _session_log
+
         _session_log.set_target(target)
 
         def _run_cmd():
@@ -376,7 +428,13 @@ def modules_run():
             run_tool(command, on_out, on_done)
             done_ev.wait()
             tool_name = command.split()[0] if command else "cmd"
-            _session_log.record_output(tool_name, command, "\n".join(output_buf), exit_code[0] or 0, source="module")
+            _session_log.record_output(
+                tool_name,
+                command,
+                "\n".join(output_buf),
+                exit_code[0] or 0,
+                source="module",
+            )
             q.put(f"\n[+] Command completed (exit {exit_code[0]})\n")
             q.put(None)
             job["done"] = True
@@ -388,8 +446,10 @@ def modules_run():
         from web.jobs import create_job, get_job
         from core.tool_runner import run_tool
         import threading
+
         config = None
         from flask import current_app
+
         if current_app:
             config = current_app.config.get("PH_CONFIG")
         preset = data.get("preset", "htb")
@@ -397,11 +457,14 @@ def modules_run():
             phases = build_recon_plan(target, config, preset=preset)
             for phase in phases:
                 cmd = resolve_tool_command(phase)
-                phase["resolved_cmd"] = phase.get("command", "(tool not found)") if not cmd else cmd
+                phase["resolved_cmd"] = (
+                    phase.get("command", "(tool not found)") if not cmd else cmd
+                )
                 phase["tool_available"] = cmd is not None
         except Exception as e:
             return jsonify({"error": str(e)}), 400
         from web.app import _session_log
+
         job_id = create_job(target=target)
         job = get_job(job_id)
         q = job["queue"]
@@ -415,31 +478,44 @@ def modules_run():
             for phase in phases:
                 cmd = phase.get("resolved_cmd")
                 if not cmd or not phase.get("tool_available"):
-                    q.put(f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n")
+                    q.put(
+                        f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n"
+                    )
                     continue
                 tool_name = phase.get("tool", "unknown")
                 phase_buf = []
                 phase_idx += 1
-                q.put(("__progress__", f"event: progress\ndata: {phase_idx}|{total_phases}|{tool_name}|{phase.get('purpose', '')}\n\n"))
-                q.put(f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n")
+                q.put(
+                    (
+                        "__progress__",
+                        f"event: progress\ndata: {phase_idx}|{total_phases}|{tool_name}|{phase.get('purpose', '')}\n\n",
+                    )
+                )
+                q.put(
+                    f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n"
+                )
                 q.put(f"[*] $ {cmd}\n\n")
                 done_ev = threading.Event()
                 exit_code = [None]
                 batch: list = []
                 BATCH_SIZE = 25  # reduce UI flood from heavy tools
+
                 def flush_batch():
                     nonlocal batch
                     if batch:
                         q.put("".join(batch))
                         batch = []
+
                 def on_out(line, _b=phase_buf):
                     _b.append(line)
                     batch.append(line)
                     if len(batch) >= BATCH_SIZE:
                         flush_batch()
+
                 def on_done(code):
                     exit_code[0] = code
                     done_ev.set()
+
                 run_tool(cmd, on_out, on_done)
                 done_ev.wait()
                 flush_batch()  # send any remaining
@@ -449,14 +525,22 @@ def modules_run():
                     "cmd": cmd,
                     "exit_code": exit_code[0] or 0,
                 }
-                q.put(f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n")
+                q.put(
+                    f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n"
+                )
             job["collected_output"] = collected
             from core.report import ReconReport
+
             rpt = ReconReport(target)
             for t, detail in collected.items():
                 rpt.add_phase_output(t, detail["output"])
             job["report"] = rpt
-            q.put(("__progress__", f"event: progress\ndata: {total_phases}|{total_phases}|done|ALL PHASES COMPLETE\n\n"))
+            q.put(
+                (
+                    "__progress__",
+                    f"event: progress\ndata: {total_phases}|{total_phases}|done|ALL PHASES COMPLETE\n\n",
+                )
+            )
             q.put(f"\n[*] All recon phases complete.\n")
             q.put(None)
             job["done"] = True
@@ -471,11 +555,13 @@ def modules_run():
     config = None
     logger = None
     from flask import current_app
+
     if current_app:
         config = current_app.config.get("PH_CONFIG")
         logger = current_app.config.get("PH_LOGGER")
 
     from web.app import _session_log
+
     job_id = create_job(target=target)
     job = get_job(job_id)
     q = job["queue"]
@@ -487,19 +573,26 @@ def modules_run():
         try:
             module = module_class(config, logger)
             result = module.run(target)
-            result_str = result.get("summary", str(result)) if isinstance(result, dict) else str(result) if result else ""
+            result_str = (
+                result.get("summary", str(result))
+                if isinstance(result, dict)
+                else str(result) if result else ""
+            )
             output_buf.append(result_str)
             q.put(f"[+] Result: {result}\n")
         except Exception as e:
             try:
                 from flask import current_app
+
                 lg = current_app.config.get("PH_LOGGER")
                 if lg:
                     lg.exception(f"module {module_id} failed: {e}")
             except Exception:
                 pass
             q.put(f"[!] Error: {e}\n")
-        _session_log.record_output(module_id, f"module:{module_id}", "\n".join(output_buf), 0, source="module")
+        _session_log.record_output(
+            module_id, f"module:{module_id}", "\n".join(output_buf), 0, source="module"
+        )
         q.put(None)
         job["done"] = True
 
@@ -508,6 +601,7 @@ def modules_run():
 
 
 # ── Terminal / Stream ─────────────────────────────────────────────────────────
+
 
 @api_v1.route("/stream/<job_id>")
 def stream(job_id):
@@ -518,12 +612,15 @@ def stream(job_id):
     if not job:
         try:
             from flask import current_app
+
             lg = current_app.config.get("PH_LOGGER")
             if lg:
                 lg.warning(f"stream: job not found job_id={job_id}")
         except Exception:
             pass
-        return Response("event: error\ndata: Job not found\n\n", mimetype="text/event-stream")
+        return Response(
+            "event: error\ndata: Job not found\n\n", mimetype="text/event-stream"
+        )
 
     def _format_msg(msg):
         if msg is None:
@@ -565,9 +662,11 @@ def stream(job_id):
 
 # ── Report & Findings ─────────────────────────────────────────────────────────
 
+
 @api_v1.route("/report/<job_id>")
 def report(job_id):
     from web.jobs import get_job
+
     job = get_job(job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
@@ -575,22 +674,41 @@ def report(job_id):
     if not rpt:
         return jsonify({"error": "No report data available"}), 404
     fmt = request.args.get("format", "md")
+    if fmt not in ("md", "html", "json"):
+        return jsonify({"error": "Invalid format"}), 400
     try:
         path = rpt.save(fmt=fmt)
+        download_name = _safe_download_name(path)
         if fmt == "html":
             content = rpt.generate_html()
-            return Response(content, mimetype="text/html", headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+            return Response(
+                content,
+                mimetype="text/html",
+                headers={
+                    "Content-Disposition": f"attachment; filename={download_name}"
+                },
+            )
         else:
             content = rpt.generate_markdown()
-            return Response(content, mimetype="text/markdown", headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            return Response(
+                content,
+                mimetype="text/markdown",
+                headers={
+                    "Content-Disposition": f"attachment; filename={download_name}"
+                },
+            )
+    except Exception:
+        return jsonify({"error": "Report generation failed"}), 500
 
 
 @api_v1.route("/findings/<job_id>")
 def findings(job_id):
     from web.jobs import get_job
-    from core.host_check import extract_hostnames_from_output, hostname_in_hosts, read_hosts_file
+    from core.host_check import (
+        extract_hostnames_from_output,
+        hostname_in_hosts,
+        read_hosts_file,
+    )
 
     job = get_job(job_id)
     if not job:
@@ -600,18 +718,19 @@ def findings(job_id):
         return jsonify({"error": "Scan still running or no data collected"}), 404
     collected = job.get("collected_output", {})
     all_output = "\n".join(
-        v["output"] if isinstance(v, dict) else v
-        for v in collected.values()
+        v["output"] if isinstance(v, dict) else v for v in collected.values()
     )
     new_hosts = extract_hostnames_from_output(all_output)
     hosts_map = read_hosts_file()
     unmapped = [h for h in new_hosts if not hostname_in_hosts(h, hosts_map)]
-    return jsonify({
-        "summary": rpt.get_findings_summary(),
-        "next_steps": rpt.get_next_steps(),
-        "target": job.get("target", ""),
-        "new_hostnames": unmapped,
-    })
+    return jsonify(
+        {
+            "summary": rpt.get_findings_summary(),
+            "next_steps": rpt.get_next_steps(),
+            "target": job.get("target", ""),
+            "new_hostnames": unmapped,
+        }
+    )
 
 
 @api_v1.route("/jobs/<job_id>/confirm-report", methods=["POST"])
@@ -641,7 +760,9 @@ def job_confirm_report(job_id):
                 source="recon",
             )
         else:
-            _session_log.record_output(tool_name, f"tool:{tool_name}", str(detail), 0, source="recon")
+            _session_log.record_output(
+                tool_name, f"tool:{tool_name}", str(detail), 0, source="recon"
+            )
 
     job["report_confirmed"] = True
     return jsonify({"ok": True, "target": target})
@@ -649,37 +770,55 @@ def job_confirm_report(job_id):
 
 # ── Session ───────────────────────────────────────────────────────────────────
 
+
 @api_v1.route("/session/findings")
 def session_findings():
     from web.app import _session_log
-    return jsonify({
-        "summary": _session_log.get_findings_summary(),
-        "findings_by_tool": _session_log.get_findings_by_tool(),
-        "next_steps": _session_log.get_attack_recommendations(),
-        "history": _session_log.get_run_history(),
-        "log_file": _session_log.get_log_path(),
-        "target": _session_log.target,
-    })
+
+    return jsonify(
+        {
+            "summary": _session_log.get_findings_summary(),
+            "findings_by_tool": _session_log.get_findings_by_tool(),
+            "next_steps": _session_log.get_attack_recommendations(),
+            "history": _session_log.get_run_history(),
+            "log_file": _session_log.get_log_path(),
+            "target": _session_log.target,
+        }
+    )
 
 
 @api_v1.route("/session/report")
 def session_report():
     from web.app import _session_log
+
     fmt = request.args.get("format", "md")
     report = _session_log.build_cumulative_report()
     try:
         path = report.save(fmt=fmt)
         if fmt == "html":
             content = report.generate_html()
-            return Response(content, mimetype="text/html", headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+            return Response(
+                content,
+                mimetype="text/html",
+                headers={
+                    "Content-Disposition": f"attachment; filename={path.split('/')[-1]}"
+                },
+            )
         else:
             content = report.generate_markdown()
-            return Response(content, mimetype="text/markdown", headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+            return Response(
+                content,
+                mimetype="text/markdown",
+                headers={
+                    "Content-Disposition": f"attachment; filename={path.split('/')[-1]}"
+                },
+            )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 # ── Next Steps ─────────────────────────────────────────────────────────────────
+
 
 @api_v1.route("/nextsteps/execute", methods=["POST"])
 def nextsteps_execute():
@@ -699,6 +838,7 @@ def nextsteps_execute():
         return jsonify({"error": err or "Command validation failed"}), 400
 
     from web.app import _session_log
+
     job_id = create_job(target=data.get("target", ""))
     job = get_job(job_id)
     q = job["queue"]
@@ -721,7 +861,9 @@ def nextsteps_execute():
 
         run_tool(cmd, on_output, on_complete)
         done_event.wait()
-        _session_log.record_output(tool_name, cmd, "".join(output_buf), exit_code[0] or 0, source="next_step")
+        _session_log.record_output(
+            tool_name, cmd, "".join(output_buf), exit_code[0] or 0, source="next_step"
+        )
         q.put(f"\n[+] Command completed (exit {exit_code[0]})\n")
         q.put(None)
         job["done"] = True
@@ -731,6 +873,7 @@ def nextsteps_execute():
 
 
 # ── AI (Ollama) ───────────────────────────────────────────────────────────────
+
 
 @api_v1.route("/ai/improve-payload", methods=["POST"])
 def ai_improve_payload():
@@ -766,6 +909,7 @@ def ai_analyze_response():
 
 # ── Support / Tickets ────────────────────────────────────────────────────────
 
+
 @api_v1.route("/support/ticket", methods=["POST"])
 def support_ticket():
     """Save a local issue ticket to issues/ as markdown (API-first). OWASP-aligned validation."""
@@ -773,10 +917,21 @@ def support_ticket():
     from datetime import datetime
     from pathlib import Path
     from flask import current_app
-    from utils.input_validation import validate_support_ticket, sanitize_for_filename, MAX_REQUEST_BODY_BYTES
+    from utils.input_validation import (
+        validate_support_ticket,
+        sanitize_for_filename,
+        MAX_REQUEST_BODY_BYTES,
+    )
 
     if request.content_length and request.content_length > MAX_REQUEST_BODY_BYTES:
-        return jsonify({"error": f"Request body too large (max {MAX_REQUEST_BODY_BYTES} bytes)"}), 413
+        return (
+            jsonify(
+                {
+                    "error": f"Request body too large (max {MAX_REQUEST_BODY_BYTES} bytes)"
+                }
+            ),
+            413,
+        )
 
     payload = request.get_json(silent=True) or {}
     ok, err, validated = validate_support_ticket(payload)
@@ -809,7 +964,9 @@ def support_ticket():
 
     app_version = None
     try:
-        app_version = getattr(cfg, "get", lambda *_: None)("app.version") if cfg else None
+        app_version = (
+            getattr(cfg, "get", lambda *_: None)("app.version") if cfg else None
+        )
     except Exception:
         app_version = None
 
@@ -849,7 +1006,7 @@ def support_ticket():
 
     try:
         out_path.write_text("\n".join(body), encoding="utf-8")
-    except Exception as e:
-        return jsonify({"error": f"Failed to write ticket: {e}"}), 500
+    except Exception:
+        return jsonify({"error": "Failed to write ticket"}), 500
 
     return jsonify({"ticket_id": ticket_id, "path": str(out_path)})

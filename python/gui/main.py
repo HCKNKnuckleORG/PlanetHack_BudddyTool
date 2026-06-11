@@ -18,23 +18,23 @@ from modules import MODULE_REGISTRY
 
 # ── Color Palette ────────────────────────────────────────────────────────────
 COLORS = {
-    "bg":           "#0a0a0a",
-    "bg_panel":     "#0d1117",
-    "bg_input":     "#111820",
-    "fg":           "#00ff41",
-    "fg_dim":       "#00aa28",
-    "fg_bright":    "#33ff66",
-    "cyan":         "#00ffff",
-    "cyan_dim":     "#00aaaa",
-    "magenta":      "#ff00ff",
-    "magenta_dim":  "#aa00aa",
-    "yellow":       "#ffff00",
-    "red":          "#ff0040",
-    "orange":       "#ff8800",
-    "white":        "#e0e0e0",
-    "border":       "#00ff41",
-    "border_dim":   "#004d14",
-    "glow":         "#003311",
+    "bg": "#0a0a0a",
+    "bg_panel": "#0d1117",
+    "bg_input": "#111820",
+    "fg": "#00ff41",
+    "fg_dim": "#00aa28",
+    "fg_bright": "#33ff66",
+    "cyan": "#00ffff",
+    "cyan_dim": "#00aaaa",
+    "magenta": "#ff00ff",
+    "magenta_dim": "#aa00aa",
+    "yellow": "#ffff00",
+    "red": "#ff0040",
+    "orange": "#ff8800",
+    "white": "#e0e0e0",
+    "border": "#00ff41",
+    "border_dim": "#004d14",
+    "glow": "#003311",
 }
 
 MOVIE_QUOTES = [
@@ -42,7 +42,10 @@ MOVIE_QUOTES = [
     ("Mess with the best, die like the rest.", "Hackers"),
     ("There is no right and wrong. There's only fun and boring.", "Hackers"),
     ("Type 'cookie', you idiot.", "Hackers"),
-    ("God gave men brains larger than dogs' so they wouldn't hump women's legs at cocktail parties.", "Hackers"),
+    (
+        "God gave men brains larger than dogs' so they wouldn't hump women's legs at cocktail parties.",
+        "Hackers",
+    ),
     ("The password is... swordfish.", "Swordfish"),
     ("Nothing is impossible.", "Swordfish"),
     ("Anybody wanna shut down the DOD?", "Swordfish"),
@@ -85,6 +88,7 @@ MATRIX_CHARS = (
 
 # ── Matrix Rain ──────────────────────────────────────────────────────────────
 
+
 class MatrixRain:
     """Canvas-based falling-code rain effect."""
 
@@ -105,13 +109,18 @@ class MatrixRain:
         col_w = max(14, w // self.density)
         self._columns = []
         for x in range(0, w, col_w):
-            self._columns.append({
-                "x": x,
-                "y": random.randint(-h, 0),
-                "speed": random.randint(8, 22),
-                "chars": [random.choice(MATRIX_CHARS) for _ in range(random.randint(6, 22))],
-                "length": random.randint(6, 22),
-            })
+            self._columns.append(
+                {
+                    "x": x,
+                    "y": random.randint(-h, 0),
+                    "speed": random.randint(8, 22),
+                    "chars": [
+                        random.choice(MATRIX_CHARS)
+                        for _ in range(random.randint(6, 22))
+                    ],
+                    "length": random.randint(6, 22),
+                }
+            )
 
     def _on_resize(self, _event=None):
         if self._running:
@@ -156,31 +165,53 @@ class MatrixRain:
                 else:
                     color = COLORS["fg_dim"]
                 c.create_text(
-                    x, cy, text=ch, fill=color,
-                    font=("Courier", 11), anchor="nw", tags="rain",
+                    x,
+                    cy,
+                    text=ch,
+                    fill=color,
+                    font=("Courier", 11),
+                    anchor="nw",
+                    tags="rain",
                 )
             col["y"] += col["speed"]
             if col["y"] > h + 40:
                 col["y"] = random.randint(-h // 2, -20)
                 col["speed"] = random.randint(8, 22)
-                col["chars"] = [random.choice(MATRIX_CHARS) for _ in range(random.randint(6, 22))]
+                col["chars"] = [
+                    random.choice(MATRIX_CHARS) for _ in range(random.randint(6, 22))
+                ]
         self._job_id = c.after(self.speed, self._tick)
 
 
 # ── Neon Button ──────────────────────────────────────────────────────────────
 
+
 class NeonButton(tk.Canvas):
     """Hand-drawn neon-bordered button with hover glow."""
 
     def __init__(
-        self, parent, text="", command=None, width=180, height=38,
-        fg=COLORS["cyan"], border=COLORS["cyan"], bg=COLORS["bg_panel"],
-        hover_fg="#ffffff", hover_border=COLORS["magenta"],
-        font=("Courier New", 10, "bold"), **kw,
+        self,
+        parent,
+        text="",
+        command=None,
+        width=180,
+        height=38,
+        fg=COLORS["cyan"],
+        border=COLORS["cyan"],
+        bg=COLORS["bg_panel"],
+        hover_fg="#ffffff",
+        hover_border=COLORS["magenta"],
+        font=("Courier New", 10, "bold"),
+        **kw,
     ):
         super().__init__(
-            parent, width=width, height=height,
-            bg=bg, highlightthickness=0, cursor="hand2", **kw,
+            parent,
+            width=width,
+            height=height,
+            bg=bg,
+            highlightthickness=0,
+            cursor="hand2",
+            **kw,
         )
         self._text = text
         self._command = command
@@ -200,9 +231,15 @@ class NeonButton(tk.Canvas):
     def _draw(self, fg, border):
         self.delete("all")
         w, h = self.winfo_reqwidth(), self.winfo_reqheight()
-        self.create_rectangle(2, 2, w - 2, h - 2, outline=border, width=2, tags="border")
-        self.create_rectangle(4, 4, w - 4, h - 4, outline=border, width=1, dash=(2, 4), tags="inner")
-        self.create_text(w // 2, h // 2, text=self._text, fill=fg, font=self._font, tags="label")
+        self.create_rectangle(
+            2, 2, w - 2, h - 2, outline=border, width=2, tags="border"
+        )
+        self.create_rectangle(
+            4, 4, w - 4, h - 4, outline=border, width=1, dash=(2, 4), tags="inner"
+        )
+        self.create_text(
+            w // 2, h // 2, text=self._text, fill=fg, font=self._font, tags="label"
+        )
 
     def _on_enter(self, _e):
         self._draw(self._hover_fg, self._hover_border)
@@ -228,16 +265,20 @@ class NeonButton(tk.Canvas):
 
 # ── CRT Scanline Overlay ────────────────────────────────────────────────────
 
+
 def apply_scanlines(canvas: tk.Canvas, spacing: int = 4, alpha_hex: str = "#000000"):
     """Draw faint horizontal scanlines for a CRT monitor look."""
     canvas.delete("scanline")
     h = canvas.winfo_height()
     w = canvas.winfo_width()
     for y in range(0, h, spacing):
-        canvas.create_line(0, y, w, y, fill=alpha_hex, stipple="gray12", tags="scanline")
+        canvas.create_line(
+            0, y, w, y, fill=alpha_hex, stipple="gray12", tags="scanline"
+        )
 
 
 # ── Main GUI ─────────────────────────────────────────────────────────────────
+
 
 class PlanetHackGUI:
     """Main GUI application."""
@@ -279,24 +320,34 @@ class PlanetHackGUI:
         style.configure("Panel.TFrame", background=COLORS["bg_panel"])
 
         style.configure(
-            "Cyber.TLabel", background=COLORS["bg"],
-            foreground=COLORS["fg"], font=("Courier New", 10),
+            "Cyber.TLabel",
+            background=COLORS["bg"],
+            foreground=COLORS["fg"],
+            font=("Courier New", 10),
         )
         style.configure(
-            "CyberBright.TLabel", background=COLORS["bg"],
-            foreground=COLORS["cyan"], font=("Courier New", 10, "bold"),
+            "CyberBright.TLabel",
+            background=COLORS["bg"],
+            foreground=COLORS["cyan"],
+            font=("Courier New", 10, "bold"),
         )
         style.configure(
-            "CyberDim.TLabel", background=COLORS["bg"],
-            foreground=COLORS["fg_dim"], font=("Courier New", 9),
+            "CyberDim.TLabel",
+            background=COLORS["bg"],
+            foreground=COLORS["fg_dim"],
+            font=("Courier New", 9),
         )
         style.configure(
-            "Header.TLabel", background=COLORS["bg"],
-            foreground=COLORS["cyan"], font=("Courier New", 14, "bold"),
+            "Header.TLabel",
+            background=COLORS["bg"],
+            foreground=COLORS["cyan"],
+            font=("Courier New", 14, "bold"),
         )
         style.configure(
-            "Cyber.TButton", background=COLORS["bg_panel"],
-            foreground=COLORS["cyan"], font=("Courier New", 10, "bold"),
+            "Cyber.TButton",
+            background=COLORS["bg_panel"],
+            foreground=COLORS["cyan"],
+            font=("Courier New", 10, "bold"),
             borderwidth=1,
         )
         style.map(
@@ -305,8 +356,10 @@ class PlanetHackGUI:
             foreground=[("active", COLORS["magenta"])],
         )
         style.configure(
-            "Green.TButton", background=COLORS["bg_panel"],
-            foreground=COLORS["fg"], font=("Courier New", 10, "bold"),
+            "Green.TButton",
+            background=COLORS["bg_panel"],
+            foreground=COLORS["fg"],
+            font=("Courier New", 10, "bold"),
             borderwidth=1,
         )
         style.map(
@@ -316,12 +369,16 @@ class PlanetHackGUI:
         )
 
         style.configure(
-            "Cyber.TNotebook", background=COLORS["bg"], borderwidth=0,
+            "Cyber.TNotebook",
+            background=COLORS["bg"],
+            borderwidth=0,
         )
         style.configure(
             "Cyber.TNotebook.Tab",
-            background=COLORS["bg_panel"], foreground=COLORS["cyan"],
-            font=("Courier New", 10, "bold"), padding=[14, 6],
+            background=COLORS["bg_panel"],
+            foreground=COLORS["cyan"],
+            font=("Courier New", 10, "bold"),
+            padding=[14, 6],
         )
         style.map(
             "Cyber.TNotebook.Tab",
@@ -331,13 +388,16 @@ class PlanetHackGUI:
 
         style.configure(
             "Cyber.TEntry",
-            fieldbackground=COLORS["bg_input"], foreground=COLORS["fg"],
-            insertcolor=COLORS["fg"], font=("Courier New", 11),
+            fieldbackground=COLORS["bg_input"],
+            foreground=COLORS["fg"],
+            insertcolor=COLORS["fg"],
+            font=("Courier New", 11),
             borderwidth=1,
         )
         style.configure(
             "Cyber.TRadiobutton",
-            background=COLORS["bg"], foreground=COLORS["cyan"],
+            background=COLORS["bg"],
+            foreground=COLORS["cyan"],
             font=("Courier New", 10),
         )
         style.map(
@@ -346,12 +406,15 @@ class PlanetHackGUI:
             background=[("active", COLORS["bg"])],
         )
         style.configure(
-            "Cyber.TLabelframe", background=COLORS["bg_panel"],
-            foreground=COLORS["cyan"], font=("Courier New", 10, "bold"),
+            "Cyber.TLabelframe",
+            background=COLORS["bg_panel"],
+            foreground=COLORS["cyan"],
+            font=("Courier New", 10, "bold"),
         )
         style.configure(
             "Cyber.TLabelframe.Label",
-            background=COLORS["bg_panel"], foreground=COLORS["cyan"],
+            background=COLORS["bg_panel"],
+            foreground=COLORS["cyan"],
             font=("Courier New", 10, "bold"),
         )
 
@@ -368,15 +431,19 @@ class PlanetHackGUI:
         header_frame.pack(fill=tk.X, padx=12, pady=(8, 2))
 
         self.header_label = tk.Label(
-            header_frame, text="[ PLANETHACK ]",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            header_frame,
+            text="[ PLANETHACK ]",
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 16, "bold"),
         )
         self.header_label.pack(side=tk.LEFT)
 
         self.quote_label = tk.Label(
-            header_frame, text="",
-            bg=COLORS["bg"], fg=COLORS["fg_dim"],
+            header_frame,
+            text="",
+            bg=COLORS["bg"],
+            fg=COLORS["fg_dim"],
             font=("Courier New", 9, "italic"),
         )
         self.quote_label.pack(side=tk.RIGHT, padx=10)
@@ -419,15 +486,19 @@ class PlanetHackGUI:
         status_frame.pack(fill=tk.X, padx=12, pady=(0, 6))
 
         tk.Label(
-            status_frame, text="STATUS >",
-            bg=COLORS["bg"], fg=COLORS["cyan_dim"],
+            status_frame,
+            text="STATUS >",
+            bg=COLORS["bg"],
+            fg=COLORS["cyan_dim"],
             font=("Courier New", 9, "bold"),
         ).pack(side=tk.LEFT)
 
         self.status_var = tk.StringVar(value="SYSTEM ONLINE -- READY")
         self.status_label = tk.Label(
-            status_frame, textvariable=self.status_var,
-            bg=COLORS["bg"], fg=COLORS["fg"],
+            status_frame,
+            textvariable=self.status_var,
+            bg=COLORS["bg"],
+            fg=COLORS["fg"],
             font=("Courier New", 9),
             anchor="w",
         )
@@ -490,7 +561,9 @@ class PlanetHackGUI:
             w.destroy()
 
         rain_canvas = tk.Canvas(
-            self.home_frame, bg=COLORS["bg"], highlightthickness=0,
+            self.home_frame,
+            bg=COLORS["bg"],
+            highlightthickness=0,
         )
         rain_canvas.pack(fill=tk.BOTH, expand=True)
 
@@ -504,22 +577,30 @@ class PlanetHackGUI:
             ch = rain_canvas.winfo_height()
             rain_canvas.coords(
                 rain_canvas.find_withtag("overlay")[0],
-                cw // 2, ch // 2,
+                cw // 2,
+                ch // 2,
             )
             rain_canvas.itemconfigure("overlay", anchor="center")
 
-        rain_canvas.bind("<Configure>", lambda e: (_reposition_overlay(e), self._rain._on_resize(e)))
+        rain_canvas.bind(
+            "<Configure>", lambda e: (_reposition_overlay(e), self._rain._on_resize(e))
+        )
 
         banner_label = tk.Label(
-            overlay, text=ASCII_BANNER, bg=COLORS["bg"], fg=COLORS["fg"],
-            font=("Courier New", 9), justify="left",
+            overlay,
+            text=ASCII_BANNER,
+            bg=COLORS["bg"],
+            fg=COLORS["fg"],
+            font=("Courier New", 9),
+            justify="left",
         )
         banner_label.pack(pady=(10, 4))
 
         tagline = tk.Label(
             overlay,
             text="//  CTF & BUG BOUNTY TOOLKIT  //",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 10, "bold"),
         )
         tagline.pack(pady=(0, 12))
@@ -527,7 +608,8 @@ class PlanetHackGUI:
         divider = tk.Label(
             overlay,
             text="━" * 58,
-            bg=COLORS["bg"], fg=COLORS["border_dim"],
+            bg=COLORS["bg"],
+            fg=COLORS["border_dim"],
             font=("Courier New", 10),
         )
         divider.pack(pady=(0, 8))
@@ -535,7 +617,8 @@ class PlanetHackGUI:
         prompt = tk.Label(
             overlay,
             text="WHAT DO YOU WANT TO DO?",
-            bg=COLORS["bg"], fg=COLORS["magenta"],
+            bg=COLORS["bg"],
+            fg=COLORS["magenta"],
             font=("Courier New", 13, "bold"),
         )
         prompt.pack(pady=(0, 14))
@@ -544,27 +627,36 @@ class PlanetHackGUI:
         btn_frame.pack(pady=4)
 
         recon_btn = NeonButton(
-            btn_frame, text="RECON",
-            width=280, height=44,
-            fg=COLORS["fg"], border=COLORS["fg"],
+            btn_frame,
+            text="RECON",
+            width=280,
+            height=44,
+            fg=COLORS["fg"],
+            border=COLORS["fg"],
             command=self.on_recon_click,
             font=("Courier New", 11, "bold"),
         )
         recon_btn.grid(row=0, column=0, padx=12, pady=10)
 
         browse_btn = NeonButton(
-            btn_frame, text=">> BROWSE OTHER MODULES <<",
-            width=280, height=44,
-            fg=COLORS["yellow"], border=COLORS["yellow"],
+            btn_frame,
+            text=">> BROWSE OTHER MODULES <<",
+            width=280,
+            height=44,
+            fg=COLORS["yellow"],
+            border=COLORS["yellow"],
             command=self.on_browse_modules,
             font=("Courier New", 11, "bold"),
         )
         browse_btn.grid(row=0, column=1, padx=12, pady=10)
 
         last_report_btn = NeonButton(
-            btn_frame, text="REPORT HISTORY",
-            width=280, height=44,
-            fg=COLORS["cyan"], border=COLORS["cyan"],
+            btn_frame,
+            text="REPORT HISTORY",
+            width=280,
+            height=44,
+            fg=COLORS["cyan"],
+            border=COLORS["cyan"],
             command=self.on_last_report_click,
             font=("Courier New", 11, "bold"),
         )
@@ -585,8 +677,12 @@ class PlanetHackGUI:
         top.pack(fill=tk.X, pady=(0, 10))
 
         NeonButton(
-            top, text="< BACK TO HOME", width=160, height=32,
-            fg=COLORS["fg_dim"], border=COLORS["fg_dim"],
+            top,
+            text="< BACK TO HOME",
+            width=160,
+            height=32,
+            fg=COLORS["fg_dim"],
+            border=COLORS["fg_dim"],
             command=self.on_back_to_home,
             font=("Courier New", 9, "bold"),
         ).pack(side=tk.LEFT)
@@ -594,14 +690,16 @@ class PlanetHackGUI:
         tk.Label(
             container,
             text="[ LAST REPORT — BUG BOUNTY ]",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 14, "bold"),
         ).pack(pady=(0, 4))
 
         tk.Label(
             container,
             text="History of your recon sessions. Use this to draft bug bounty reports.",
-            bg=COLORS["bg"], fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+            fg=COLORS["fg_dim"],
             font=("Courier New", 10),
         ).pack(pady=(0, 12))
 
@@ -613,12 +711,17 @@ class PlanetHackGUI:
             tk.Label(
                 container,
                 text="No recon data yet. Run a reconnaissance first.",
-                bg=COLORS["bg"], fg=COLORS["yellow"],
+                bg=COLORS["bg"],
+                fg=COLORS["yellow"],
                 font=("Courier New", 12),
             ).pack(pady=20)
             NeonButton(
-                container, text="GO TO RECON", width=200, height=36,
-                fg=COLORS["fg"], border=COLORS["fg"],
+                container,
+                text="GO TO RECON",
+                width=200,
+                height=36,
+                fg=COLORS["fg"],
+                border=COLORS["fg"],
                 command=self.on_recon_click,
                 font=("Courier New", 10, "bold"),
             ).pack(pady=10)
@@ -634,23 +737,54 @@ class PlanetHackGUI:
 
         btn_row = tk.Frame(container, bg=COLORS["bg"])
         btn_row.pack(fill=tk.X, pady=(0, 8))
-        tk.Label(btn_row, text="EXPORT:", bg=COLORS["bg"], fg=COLORS["cyan"],
-                 font=("Courier New", 10, "bold")).pack(side=tk.LEFT, padx=(0, 8))
-        NeonButton(btn_row, text="COPY FOR BOUNTY", width=180, height=30,
-                  fg=COLORS["fg"], border=COLORS["fg"],
-                  command=lambda: self._copy_bounty_report(report),
-                  font=("Courier New", 9, "bold")).pack(side=tk.LEFT, padx=4)
-        NeonButton(btn_row, text="SAVE .MD", width=100, height=30,
-                  fg=COLORS["cyan_dim"], border=COLORS["cyan_dim"],
-                  command=lambda: self._save_report("md"), font=("Courier New", 9, "bold")).pack(side=tk.LEFT, padx=4)
-        NeonButton(btn_row, text="SAVE .HTML", width=100, height=30,
-                  fg=COLORS["cyan_dim"], border=COLORS["cyan_dim"],
-                  command=lambda: self._save_report("html"), font=("Courier New", 9, "bold")).pack(side=tk.LEFT, padx=4)
+        tk.Label(
+            btn_row,
+            text="EXPORT:",
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
+            font=("Courier New", 10, "bold"),
+        ).pack(side=tk.LEFT, padx=(0, 8))
+        NeonButton(
+            btn_row,
+            text="COPY FOR BOUNTY",
+            width=180,
+            height=30,
+            fg=COLORS["fg"],
+            border=COLORS["fg"],
+            command=lambda: self._copy_bounty_report(report),
+            font=("Courier New", 9, "bold"),
+        ).pack(side=tk.LEFT, padx=4)
+        NeonButton(
+            btn_row,
+            text="SAVE .MD",
+            width=100,
+            height=30,
+            fg=COLORS["cyan_dim"],
+            border=COLORS["cyan_dim"],
+            command=lambda: self._save_report("md"),
+            font=("Courier New", 9, "bold"),
+        ).pack(side=tk.LEFT, padx=4)
+        NeonButton(
+            btn_row,
+            text="SAVE .HTML",
+            width=100,
+            height=30,
+            fg=COLORS["cyan_dim"],
+            border=COLORS["cyan_dim"],
+            command=lambda: self._save_report("html"),
+            font=("Courier New", 9, "bold"),
+        ).pack(side=tk.LEFT, padx=4)
 
         scroller = scrolledtext.ScrolledText(
-            container, wrap=tk.WORD, bg=COLORS["bg_input"], fg=COLORS["fg"],
-            insertbackground=COLORS["fg"], font=("Courier New", 10),
-            relief=tk.FLAT, padx=10, pady=10,
+            container,
+            wrap=tk.WORD,
+            bg=COLORS["bg_input"],
+            fg=COLORS["fg"],
+            insertbackground=COLORS["fg"],
+            font=("Courier New", 10),
+            relief=tk.FLAT,
+            padx=10,
+            pady=10,
         )
         scroller.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
 
@@ -692,7 +826,9 @@ class PlanetHackGUI:
             crit = [f for f in nuclei if f.get("severity") in ("critical", "high")]
             lines.append(f"NUCLEI: {len(nuclei)} finding(s), {len(crit)} critical/high")
             for f in nuclei[:8]:
-                lines.append(f"  [{f.get('severity', '?').upper()}] {f.get('name', f.get('template', '?'))}")
+                lines.append(
+                    f"  [{f.get('severity', '?').upper()}] {f.get('name', f.get('template', '?'))}"
+                )
             lines.append("")
         lines.append("--- RECOMMENDED NEXT STEPS ---")
         lines.append("")
@@ -721,7 +857,10 @@ class PlanetHackGUI:
         ]
         ports = summary.get("ports", [])
         if ports:
-            lines.append("**Open ports:** " + ", ".join(f"{p['port']}/{p['proto']}" for p in ports[:15]))
+            lines.append(
+                "**Open ports:** "
+                + ", ".join(f"{p['port']}/{p['proto']}" for p in ports[:15])
+            )
         techs = summary.get("technologies", [])
         if techs:
             lines.append("**Technologies:** " + ", ".join(techs[:12]))
@@ -750,8 +889,12 @@ class PlanetHackGUI:
         top.pack(fill=tk.X, pady=(0, 10))
 
         back_btn = NeonButton(
-            top, text="< BACK", width=100, height=32,
-            fg=COLORS["fg_dim"], border=COLORS["fg_dim"],
+            top,
+            text="< BACK",
+            width=100,
+            height=32,
+            fg=COLORS["fg_dim"],
+            border=COLORS["fg_dim"],
             command=self.on_back_to_home,
             font=("Courier New", 9, "bold"),
         )
@@ -760,33 +903,46 @@ class PlanetHackGUI:
         tk.Label(
             container,
             text="[ RECONNAISSANCE MODULE ]",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 14, "bold"),
         ).pack(pady=(0, 6))
 
         tk.Label(
             container,
             text="━" * 50,
-            bg=COLORS["bg"], fg=COLORS["border_dim"],
+            bg=COLORS["bg"],
+            fg=COLORS["border_dim"],
             font=("Courier New", 10),
         ).pack(pady=(0, 10))
 
-        input_panel = tk.Frame(container, bg=COLORS["bg_panel"], bd=1, relief="solid",
-                               highlightbackground=COLORS["border_dim"], highlightthickness=1)
+        input_panel = tk.Frame(
+            container,
+            bg=COLORS["bg_panel"],
+            bd=1,
+            relief="solid",
+            highlightbackground=COLORS["border_dim"],
+            highlightthickness=1,
+        )
         input_panel.pack(fill=tk.X, pady=6, ipady=8)
 
         tk.Label(
-            input_panel, text="TARGET >",
-            bg=COLORS["bg_panel"], fg=COLORS["cyan"],
+            input_panel,
+            text="TARGET >",
+            bg=COLORS["bg_panel"],
+            fg=COLORS["cyan"],
             font=("Courier New", 11, "bold"),
         ).pack(side=tk.LEFT, padx=(12, 6))
 
         self.recon_target_entry = tk.Entry(
-            input_panel, width=50,
-            bg=COLORS["bg_input"], fg=COLORS["fg"],
+            input_panel,
+            width=50,
+            bg=COLORS["bg_input"],
+            fg=COLORS["fg"],
             insertbackground=COLORS["fg"],
             font=("Courier New", 12),
-            bd=0, highlightthickness=1,
+            bd=0,
+            highlightthickness=1,
             highlightcolor=COLORS["cyan"],
             highlightbackground=COLORS["border_dim"],
         )
@@ -796,8 +952,10 @@ class PlanetHackGUI:
         preset_panel.pack(fill=tk.X, pady=8)
 
         tk.Label(
-            preset_panel, text="PRESET:",
-            bg=COLORS["bg"], fg=COLORS["fg_dim"],
+            preset_panel,
+            text="PRESET:",
+            bg=COLORS["bg"],
+            fg=COLORS["fg_dim"],
             font=("Courier New", 10, "bold"),
         ).pack(side=tk.LEFT, padx=(0, 10))
 
@@ -809,17 +967,23 @@ class PlanetHackGUI:
         ]
         for label, val in presets:
             rb = ttk.Radiobutton(
-                preset_panel, text=label,
-                variable=self.recon_preset_var, value=val,
+                preset_panel,
+                text=label,
+                variable=self.recon_preset_var,
+                value=val,
                 style="Cyber.TRadiobutton",
             )
             rb.pack(side=tk.LEFT, padx=12)
 
         build_btn = NeonButton(
-            container, text=">>> BUILD RECON PLAN <<<",
-            width=300, height=42,
-            fg=COLORS["fg"], border=COLORS["fg"],
-            hover_fg="#ffffff", hover_border=COLORS["cyan"],
+            container,
+            text=">>> BUILD RECON PLAN <<<",
+            width=300,
+            height=42,
+            fg=COLORS["fg"],
+            border=COLORS["fg"],
+            hover_fg="#ffffff",
+            hover_border=COLORS["cyan"],
             command=self.on_build_recon_plan,
         )
         build_btn.pack(pady=14)
@@ -832,12 +996,17 @@ class PlanetHackGUI:
             w.destroy()
 
         canvas = tk.Canvas(
-            self.recon_plan_container, bg=COLORS["bg"], highlightthickness=0,
+            self.recon_plan_container,
+            bg=COLORS["bg"],
+            highlightthickness=0,
         )
         scrollbar = tk.Scrollbar(
-            self.recon_plan_container, orient="vertical",
-            command=canvas.yview, bg=COLORS["bg_panel"],
-            troughcolor=COLORS["bg"], activebackground=COLORS["cyan"],
+            self.recon_plan_container,
+            orient="vertical",
+            command=canvas.yview,
+            bg=COLORS["bg_panel"],
+            troughcolor=COLORS["bg"],
+            activebackground=COLORS["cyan"],
         )
         scrollable = tk.Frame(canvas, bg=COLORS["bg"])
 
@@ -851,7 +1020,8 @@ class PlanetHackGUI:
         tk.Label(
             scrollable,
             text="[ RECON PLAN -- EXECUTE OR COPY ]",
-            bg=COLORS["bg"], fg=COLORS["magenta"],
+            bg=COLORS["bg"],
+            fg=COLORS["magenta"],
             font=("Courier New", 11, "bold"),
         ).pack(anchor="w", pady=(4, 8))
 
@@ -859,15 +1029,19 @@ class PlanetHackGUI:
 
         for phase in phases:
             phase_frame = tk.Frame(
-                scrollable, bg=COLORS["bg_panel"], bd=0,
-                highlightbackground=COLORS["border_dim"], highlightthickness=1,
+                scrollable,
+                bg=COLORS["bg_panel"],
+                bd=0,
+                highlightbackground=COLORS["border_dim"],
+                highlightthickness=1,
             )
             phase_frame.pack(fill=tk.X, padx=4, pady=6, ipady=6)
 
             phase_header = tk.Label(
                 phase_frame,
                 text=f"  PHASE {phase['phase']}  |  {phase['purpose'].upper()}  |  {phase['tool'].upper()}  ",
-                bg=COLORS["bg_panel"], fg=COLORS["cyan"],
+                bg=COLORS["bg_panel"],
+                fg=COLORS["cyan"],
                 font=("Courier New", 10, "bold"),
                 anchor="w",
             )
@@ -886,16 +1060,21 @@ class PlanetHackGUI:
             cmd_row.pack(fill=tk.X, padx=16, pady=2)
 
             tk.Label(
-                cmd_row, text="$",
-                bg=COLORS["bg_panel"], fg=COLORS["yellow"],
+                cmd_row,
+                text="$",
+                bg=COLORS["bg_panel"],
+                fg=COLORS["yellow"],
                 font=("Courier New", 10, "bold"),
             ).pack(side=tk.LEFT, padx=(0, 4))
 
             cmd_entry = tk.Entry(
-                cmd_row, bg=COLORS["bg_input"], fg=cmd_color,
+                cmd_row,
+                bg=COLORS["bg_input"],
+                fg=cmd_color,
                 insertbackground=COLORS["fg"],
                 font=("Courier New", 10),
-                bd=0, highlightthickness=1,
+                bd=0,
+                highlightthickness=1,
                 highlightcolor=COLORS["cyan"],
                 highlightbackground=COLORS["border_dim"],
                 state=tk.NORMAL if avail else tk.DISABLED,
@@ -911,23 +1090,36 @@ class PlanetHackGUI:
 
             if avail:
                 NeonButton(
-                    btn_row, text="EXECUTE", width=110, height=30,
-                    fg=COLORS["fg"], border=COLORS["fg"],
-                    command=lambda p=phase, e=cmd_entry: self.on_execute_phase_edited(p, e),
+                    btn_row,
+                    text="EXECUTE",
+                    width=110,
+                    height=30,
+                    fg=COLORS["fg"],
+                    border=COLORS["fg"],
+                    command=lambda p=phase, e=cmd_entry: self.on_execute_phase_edited(
+                        p, e
+                    ),
                     font=("Courier New", 9, "bold"),
                 ).pack(side=tk.LEFT, padx=4)
 
             NeonButton(
-                btn_row, text="COPY CMD", width=110, height=30,
-                fg=COLORS["cyan_dim"], border=COLORS["cyan_dim"],
+                btn_row,
+                text="COPY CMD",
+                width=110,
+                height=30,
+                fg=COLORS["cyan_dim"],
+                border=COLORS["cyan_dim"],
                 command=lambda e=cmd_entry: self.copy_to_clipboard(e.get()),
                 font=("Courier New", 9, "bold"),
             ).pack(side=tk.LEFT, padx=4)
 
         run_all = NeonButton(
-            scrollable, text=">>> RUN ALL PHASES (SEQUENTIAL) <<<",
-            width=400, height=42,
-            fg=COLORS["magenta"], border=COLORS["magenta"],
+            scrollable,
+            text=">>> RUN ALL PHASES (SEQUENTIAL) <<<",
+            width=400,
+            height=42,
+            fg=COLORS["magenta"],
+            border=COLORS["magenta"],
             command=self.on_run_all_phases,
         )
         run_all.pack(pady=14)
@@ -944,33 +1136,45 @@ class PlanetHackGUI:
         tk.Label(
             container,
             text="[ ARSENAL -- SELECT MODULE ]",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 13, "bold"),
         ).pack(pady=(6, 4))
 
         tk.Label(
             container,
             text="━" * 50,
-            bg=COLORS["bg"], fg=COLORS["border_dim"],
+            bg=COLORS["bg"],
+            fg=COLORS["border_dim"],
             font=("Courier New", 10),
         ).pack(pady=(0, 8))
 
-        target_panel = tk.Frame(container, bg=COLORS["bg_panel"], bd=0,
-                                highlightbackground=COLORS["border_dim"], highlightthickness=1)
+        target_panel = tk.Frame(
+            container,
+            bg=COLORS["bg_panel"],
+            bd=0,
+            highlightbackground=COLORS["border_dim"],
+            highlightthickness=1,
+        )
         target_panel.pack(fill=tk.X, pady=(0, 12), ipady=6)
 
         tk.Label(
-            target_panel, text="TARGET >",
-            bg=COLORS["bg_panel"], fg=COLORS["cyan"],
+            target_panel,
+            text="TARGET >",
+            bg=COLORS["bg_panel"],
+            fg=COLORS["cyan"],
             font=("Courier New", 11, "bold"),
         ).pack(side=tk.LEFT, padx=(12, 6))
 
         self.target_entry = tk.Entry(
-            target_panel, width=50,
-            bg=COLORS["bg_input"], fg=COLORS["fg"],
+            target_panel,
+            width=50,
+            bg=COLORS["bg_input"],
+            fg=COLORS["fg"],
             insertbackground=COLORS["fg"],
             font=("Courier New", 12),
-            bd=0, highlightthickness=1,
+            bd=0,
+            highlightthickness=1,
             highlightcolor=COLORS["cyan"],
             highlightbackground=COLORS["border_dim"],
         )
@@ -1007,8 +1211,12 @@ class PlanetHackGUI:
         row, col = 0, 0
         for name, mid, color in modules:
             btn = NeonButton(
-                grid_frame, text=name, width=190, height=36,
-                fg=color, border=color,
+                grid_frame,
+                text=name,
+                width=190,
+                height=36,
+                fg=color,
+                border=color,
                 command=lambda m=mid: self.run_module(m),
                 font=("Courier New", 9, "bold"),
             )
@@ -1024,26 +1232,40 @@ class PlanetHackGUI:
         container = tk.Frame(self.terminal_frame, bg=COLORS["bg"])
         container.pack(fill=tk.BOTH, expand=True, padx=12, pady=8)
 
-        term_header = tk.Frame(container, bg=COLORS["bg_panel"],
-                               highlightbackground=COLORS["border_dim"], highlightthickness=1)
+        term_header = tk.Frame(
+            container,
+            bg=COLORS["bg_panel"],
+            highlightbackground=COLORS["border_dim"],
+            highlightthickness=1,
+        )
         term_header.pack(fill=tk.X, pady=(0, 4))
 
         tk.Label(
-            term_header, text="  TERMINAL SESSIONS  //  LIVE FEED  ",
-            bg=COLORS["bg_panel"], fg=COLORS["cyan"],
+            term_header,
+            text="  TERMINAL SESSIONS  //  LIVE FEED  ",
+            bg=COLORS["bg_panel"],
+            fg=COLORS["cyan"],
             font=("Courier New", 10, "bold"),
         ).pack(side=tk.LEFT, padx=6, pady=4)
 
         NeonButton(
-            term_header, text="CLOSE TAB", width=100, height=28,
-            fg=COLORS["red"], border=COLORS["red"],
+            term_header,
+            text="CLOSE TAB",
+            width=100,
+            height=28,
+            fg=COLORS["red"],
+            border=COLORS["red"],
             command=self._close_current_session,
             font=("Courier New", 9, "bold"),
         ).pack(side=tk.RIGHT, padx=6, pady=4)
 
         NeonButton(
-            term_header, text="CLEAR", width=80, height=28,
-            fg=COLORS["orange"], border=COLORS["orange"],
+            term_header,
+            text="CLEAR",
+            width=80,
+            height=28,
+            fg=COLORS["orange"],
+            border=COLORS["orange"],
             command=self.clear_terminal,
             font=("Courier New", 9, "bold"),
         ).pack(side=tk.RIGHT, padx=2, pady=4)
@@ -1070,38 +1292,50 @@ class PlanetHackGUI:
 
         term_widget = scrolledtext.ScrolledText(
             frame,
-            bg="#050505", fg=COLORS["fg"],
+            bg="#050505",
+            fg=COLORS["fg"],
             font=("Courier New", 11),
             insertbackground=COLORS["fg"],
             selectbackground=COLORS["glow"],
             selectforeground=COLORS["fg_bright"],
-            bd=0, highlightthickness=1,
+            bd=0,
+            highlightthickness=1,
             highlightbackground=COLORS["border_dim"],
             highlightcolor=COLORS["cyan"],
             wrap=tk.WORD,
         )
         term_widget.pack(fill=tk.BOTH, expand=True)
 
-        term_widget.tag_configure("phase", foreground=COLORS["cyan"], font=("Courier New", 11, "bold"))
+        term_widget.tag_configure(
+            "phase", foreground=COLORS["cyan"], font=("Courier New", 11, "bold")
+        )
         term_widget.tag_configure("cmd", foreground=COLORS["yellow"])
         term_widget.tag_configure("error", foreground=COLORS["red"])
         term_widget.tag_configure("success", foreground=COLORS["fg_bright"])
 
-        progress_frame = tk.Frame(frame, bg=COLORS["bg_panel"],
-                                  highlightbackground=COLORS["border_dim"], highlightthickness=1)
+        progress_frame = tk.Frame(
+            frame,
+            bg=COLORS["bg_panel"],
+            highlightbackground=COLORS["border_dim"],
+            highlightthickness=1,
+        )
         progress_frame.pack(fill=tk.X, pady=(4, 0))
 
         progress_label = tk.Label(
-            progress_frame, text="IDLE",
-            bg=COLORS["bg_panel"], fg=COLORS["cyan"],
+            progress_frame,
+            text="IDLE",
+            bg=COLORS["bg_panel"],
+            fg=COLORS["cyan"],
             font=("Courier New", 10, "bold"),
         )
         progress_label.pack(side=tk.LEFT, padx=8, pady=4)
 
         progress_var = tk.DoubleVar(value=0.0)
         progress_bar = ttk.Progressbar(
-            progress_frame, variable=progress_var,
-            maximum=100, length=300,
+            progress_frame,
+            variable=progress_var,
+            maximum=100,
+            length=300,
             style="Neon.Horizontal.TProgressbar",
         )
         progress_bar.pack(side=tk.RIGHT, padx=8, pady=4, fill=tk.X, expand=True)
@@ -1186,14 +1420,16 @@ class PlanetHackGUI:
         tk.Label(
             container,
             text="[ ABOUT ]",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 13, "bold"),
         ).pack(pady=(10, 4))
 
         tk.Label(
             container,
             text="━" * 44,
-            bg=COLORS["bg"], fg=COLORS["border_dim"],
+            bg=COLORS["bg"],
+            fg=COLORS["border_dim"],
             font=("Courier New", 10),
         ).pack(pady=(0, 16))
 
@@ -1209,20 +1445,28 @@ class PlanetHackGUI:
             row = tk.Frame(container, bg=COLORS["bg"])
             row.pack(fill=tk.X, pady=4)
             tk.Label(
-                row, text=f"  {label}:", width=18, anchor="e",
-                bg=COLORS["bg"], fg=COLORS["cyan_dim"],
+                row,
+                text=f"  {label}:",
+                width=18,
+                anchor="e",
+                bg=COLORS["bg"],
+                fg=COLORS["cyan_dim"],
                 font=("Courier New", 10, "bold"),
             ).pack(side=tk.LEFT)
             tk.Label(
-                row, text=f"  {value}", anchor="w",
-                bg=COLORS["bg"], fg=COLORS["fg"],
+                row,
+                text=f"  {value}",
+                anchor="w",
+                bg=COLORS["bg"],
+                fg=COLORS["fg"],
                 font=("Courier New", 10),
             ).pack(side=tk.LEFT, padx=(6, 0))
 
         tk.Label(
             container,
-            text="\n\"We are samurai, the keyboard cowboys...\"\n  -- The Plague, Hackers (1995)",
-            bg=COLORS["bg"], fg=COLORS["fg_dim"],
+            text='\n"We are samurai, the keyboard cowboys..."\n  -- The Plague, Hackers (1995)',
+            bg=COLORS["bg"],
+            fg=COLORS["fg_dim"],
             font=("Courier New", 10, "italic"),
             justify="center",
         ).pack(pady=30)
@@ -1283,16 +1527,20 @@ class PlanetHackGUI:
 
         if preflight["needs_hosts_update"]:
             redirect_host = preflight.get("redirect_hostname", "")
-            warning_text = "\n\n".join(preflight["warnings"]) if preflight["warnings"] else preflight["message"]
+            warning_text = (
+                "\n\n".join(preflight["warnings"])
+                if preflight["warnings"]
+                else preflight["message"]
+            )
 
             if redirect_host:
                 answer = messagebox.askyesnocancel(
                     "HOSTS FILE UPDATE REQUIRED",
                     f"{warning_text}\n\n"
-                    f"Add \"{target}  {redirect_host}\" to /etc/hosts now?\n\n"
+                    f'Add "{target}  {redirect_host}" to /etc/hosts now?\n\n'
                     f"YES = Add and continue (requires sudo)\n"
                     f"NO = Skip and build plan anyway\n"
-                    f"CANCEL = Abort"
+                    f"CANCEL = Abort",
                 )
                 if answer is None:
                     self.status_var.set("RECON > Aborted")
@@ -1313,7 +1561,10 @@ class PlanetHackGUI:
 
         elif preflight["redirect_hostname"]:
             redir = preflight["redirect_hostname"]
-            self.log_terminal(f"[*] Redirect detected: {target} -> {redir} (already in /etc/hosts)\n", "phase")
+            self.log_terminal(
+                f"[*] Redirect detected: {target} -> {redir} (already in /etc/hosts)\n",
+                "phase",
+            )
 
         if preflight.get("warnings"):
             for w in preflight["warnings"]:
@@ -1327,7 +1578,9 @@ class PlanetHackGUI:
             self._last_recon_target = target
             self.session_log.set_target(target)
             self.create_recon_plan_display(phases)
-            self.status_var.set(f"RECON > Plan built: {len(phases)} phases for {target}  |  Log: {self.session_log.get_log_path()}")
+            self.status_var.set(
+                f"RECON > Plan built: {len(phases)} phases for {target}  |  Log: {self.session_log.get_log_path()}"
+            )
         except Exception as e:
             self.logger.error(f"Error building plan: {e}")
             messagebox.showerror("ERROR", str(e))
@@ -1341,11 +1594,14 @@ class PlanetHackGUI:
 
         sid = self._open_new_terminal(f"P{phase['phase']} {phase['tool']}")
         sess = self._get_session(sid)
+        assert sess is not None
         term = sess["terminal"]
         tool_name = phase.get("tool", "unknown")
         output_buf: list = []
 
-        self._log_to(term, f"\n[*] === Phase {phase['phase']}: {phase['purpose']} ===\n", "phase")
+        self._log_to(
+            term, f"\n[*] === Phase {phase['phase']}: {phase['purpose']} ===\n", "phase"
+        )
         self._log_to(term, f"[*] $ {cmd}\n\n", "cmd")
         self.status_var.set(f"EXEC > Running {tool_name}...")
         self.session_log.set_target(getattr(self, "_last_recon_target", ""))
@@ -1355,11 +1611,18 @@ class PlanetHackGUI:
             self.root.after(0, lambda: self._log_to(term, msg))
 
         def on_done(code, _buf=output_buf):
-            self.session_log.record_output(tool_name, cmd, "".join(_buf), code, source="phase")
-            self.root.after(0, lambda: (
-                self.status_var.set(f"EXEC > Phase {phase['phase']} completed (exit {code})"),
-                self._refresh_session_panel(),
-            ))
+            self.session_log.record_output(
+                tool_name, cmd, "".join(_buf), code, source="phase"
+            )
+            self.root.after(
+                0,
+                lambda: (
+                    self.status_var.set(
+                        f"EXEC > Phase {phase['phase']} completed (exit {code})"
+                    ),
+                    self._refresh_session_panel(),
+                ),
+            )
 
         run_tool(cmd, on_out, on_complete=on_done)
 
@@ -1375,10 +1638,13 @@ class PlanetHackGUI:
 
         sid = self._open_new_terminal(f"P{phase['phase']} {tool_name}")
         sess = self._get_session(sid)
+        assert sess is not None
         term = sess["terminal"]
         output_buf: list = []
 
-        self._log_to(term, f"\n[*] === Phase {phase['phase']}: {phase['purpose']} ===\n", "phase")
+        self._log_to(
+            term, f"\n[*] === Phase {phase['phase']}: {phase['purpose']} ===\n", "phase"
+        )
         self._log_to(term, f"[*] $ {cmd}\n\n", "cmd")
         self.status_var.set(f"EXEC > Running {tool_name}...")
         self.session_log.set_target(getattr(self, "_last_recon_target", ""))
@@ -1388,11 +1654,18 @@ class PlanetHackGUI:
             self.root.after(0, lambda: self._log_to(term, msg))
 
         def on_done(code, _buf=output_buf):
-            self.session_log.record_output(tool_name, cmd, "".join(_buf), code, source="phase")
-            self.root.after(0, lambda: (
-                self.status_var.set(f"EXEC > Phase {phase['phase']} completed (exit {code})"),
-                self._refresh_session_panel(),
-            ))
+            self.session_log.record_output(
+                tool_name, cmd, "".join(_buf), code, source="phase"
+            )
+            self.root.after(
+                0,
+                lambda: (
+                    self.status_var.set(
+                        f"EXEC > Phase {phase['phase']} completed (exit {code})"
+                    ),
+                    self._refresh_session_panel(),
+                ),
+            )
 
         run_tool(cmd, on_out, on_complete=on_done)
 
@@ -1407,7 +1680,9 @@ class PlanetHackGUI:
                 if edited:
                     phase["command"] = edited
 
-        target = getattr(self, "_last_recon_target", self.recon_target_entry.get().strip())
+        target = getattr(
+            self, "_last_recon_target", self.recon_target_entry.get().strip()
+        )
         sid = self._open_new_terminal(f"Recon {target[:15]}")
         sess = self._get_session(sid)
         term = sess["terminal"]
@@ -1415,7 +1690,11 @@ class PlanetHackGUI:
         p_var = sess["progress_var"]
         r_frame = sess["report_frame"]
 
-        self._log_to(term, "\n[*] === RUNNING ALL PHASES (SEQUENTIAL -- CONFIRM AFTER EACH) ===\n\n", "phase")
+        self._log_to(
+            term,
+            "\n[*] === RUNNING ALL PHASES (SEQUENTIAL -- CONFIRM AFTER EACH) ===\n\n",
+            "phase",
+        )
         self.status_var.set("EXEC > Running all phases...")
         p_var.set(0)
         p_label.config(text="STARTING...")
@@ -1423,6 +1702,7 @@ class PlanetHackGUI:
         self.session_log.set_target(target)
 
         from core.report import ReconReport
+
         report = ReconReport(target)
 
         def on_out(msg):
@@ -1439,10 +1719,13 @@ class PlanetHackGUI:
         def on_progress(current, total, phase):
             pct = (current / total) * 100 if total else 0
             lbl = f"PHASE {current}/{total}: {phase.get('tool', '?')} -- {phase.get('purpose', '')}"
-            self.root.after(0, lambda: (
-                p_var.set(pct),
-                p_label.config(text=lbl),
-            ))
+            self.root.after(
+                0,
+                lambda: (
+                    p_var.set(pct),
+                    p_label.config(text=lbl),
+                ),
+            )
 
         def on_phase_confirm(phase, exit_code, output, collected_so_far):
             """Blocks the runner thread until user confirms in the GUI."""
@@ -1454,30 +1737,43 @@ class PlanetHackGUI:
 
             def _show_confirm():
                 self._log_to(term, "\n" + "=" * 60 + "\n", "phase")
-                self._log_to(term, f"  PHASE {phase['phase']} COMPLETE -- {tool_name.upper()} FINDINGS:\n", "phase")
+                self._log_to(
+                    term,
+                    f"  PHASE {phase['phase']} COMPLETE -- {tool_name.upper()} FINDINGS:\n",
+                    "phase",
+                )
                 self._log_to(term, "=" * 60 + "\n", "phase")
                 for line in summary_lines:
                     self._log_to(term, f"  {line}\n", "success")
                 self._log_to(term, "=" * 60 + "\n\n", "phase")
-                self.status_var.set(f"WAITING > Review Phase {phase['phase']} findings, then confirm.")
+                self.status_var.set(
+                    f"WAITING > Review Phase {phase['phase']} findings, then confirm."
+                )
 
-                confirm_frame = tk.Frame(term.master, bg=COLORS["bg_panel"],
-                                         highlightbackground=COLORS["yellow"],
-                                         highlightthickness=2)
+                confirm_frame = tk.Frame(
+                    term.master,
+                    bg=COLORS["bg_panel"],
+                    highlightbackground=COLORS["yellow"],
+                    highlightthickness=2,
+                )
                 confirm_frame.pack(fill=tk.X, pady=4, padx=4)
 
                 tk.Label(
                     confirm_frame,
                     text=f"PHASE {phase['phase']}: {tool_name.upper()} -- {phase.get('purpose', '')}",
-                    bg=COLORS["bg_panel"], fg=COLORS["yellow"],
+                    bg=COLORS["bg_panel"],
+                    fg=COLORS["yellow"],
                     font=("Courier New", 11, "bold"),
                 ).pack(anchor="w", padx=8, pady=(6, 2))
 
                 for line in summary_lines:
                     tk.Label(
-                        confirm_frame, text=f"  {line}",
-                        bg=COLORS["bg_panel"], fg=COLORS["fg"],
-                        font=("Courier New", 9), anchor="w",
+                        confirm_frame,
+                        text=f"  {line}",
+                        bg=COLORS["bg_panel"],
+                        fg=COLORS["fg"],
+                        font=("Courier New", 9),
+                        anchor="w",
                     ).pack(anchor="w", padx=12)
 
                 btn_row = tk.Frame(confirm_frame, bg=COLORS["bg_panel"])
@@ -1494,15 +1790,23 @@ class PlanetHackGUI:
                     confirm_event.set()
 
                 NeonButton(
-                    btn_row, text="CONTINUE TO NEXT PHASE >>>", width=260, height=32,
-                    fg=COLORS["fg"], border=COLORS["fg"],
+                    btn_row,
+                    text="CONTINUE TO NEXT PHASE >>>",
+                    width=260,
+                    height=32,
+                    fg=COLORS["fg"],
+                    border=COLORS["fg"],
                     command=_continue,
                     font=("Courier New", 10, "bold"),
                 ).pack(side=tk.LEFT, padx=(0, 8))
 
                 NeonButton(
-                    btn_row, text="STOP HERE", width=120, height=32,
-                    fg=COLORS["red"], border=COLORS["red"],
+                    btn_row,
+                    text="STOP HERE",
+                    width=120,
+                    height=32,
+                    fg=COLORS["red"],
+                    border=COLORS["red"],
                     command=_stop,
                     font=("Courier New", 10, "bold"),
                 ).pack(side=tk.LEFT)
@@ -1520,7 +1824,12 @@ class PlanetHackGUI:
                 self.session_log.record_output(tool, "", output, 0, source="recon")
             self._last_report = report
 
-            from core.host_check import extract_hostnames_from_output, hostname_in_hosts, read_hosts_file
+            from core.host_check import (
+                extract_hostnames_from_output,
+                hostname_in_hosts,
+                read_hosts_file,
+            )
+
             all_output = "\n".join(collected.values())
             new_hosts = extract_hostnames_from_output(all_output)
             hosts_map = read_hosts_file()
@@ -1530,12 +1839,19 @@ class PlanetHackGUI:
 
             self._activate_session(sid)
             self.root.after(0, lambda: self._show_post_recon_panel(report))
-            self.root.after(0, lambda: (
-                p_var.set(100),
-                p_label.config(text="ALL PHASES COMPLETE"),
-                self.status_var.set("EXEC > Complete. Review findings and next steps below."),
-                self._log_to(term, "\n[+] === ALL PHASES COMPLETE ===\n", "success"),
-            ))
+            self.root.after(
+                0,
+                lambda: (
+                    p_var.set(100),
+                    p_label.config(text="ALL PHASES COMPLETE"),
+                    self.status_var.set(
+                        "EXEC > Complete. Review findings and next steps below."
+                    ),
+                    self._log_to(
+                        term, "\n[+] === ALL PHASES COMPLETE ===\n", "success"
+                    ),
+                ),
+            )
 
         run_tools_sequential(
             self.recon_phases,
@@ -1560,21 +1876,29 @@ class PlanetHackGUI:
         total_runs = session_summary.get("total_entries", 0)
 
         if tools_run:
-            session_bar = tk.Frame(self.report_frame, bg=COLORS["bg_panel"],
-                                   highlightbackground=COLORS["border_dim"], highlightthickness=1)
+            session_bar = tk.Frame(
+                self.report_frame,
+                bg=COLORS["bg_panel"],
+                highlightbackground=COLORS["border_dim"],
+                highlightthickness=1,
+            )
             session_bar.pack(fill=tk.X, pady=(0, 4))
             tk.Label(
                 session_bar,
                 text=f"[ SESSION: {total_runs} run(s) | Tools: {', '.join(tools_run)} | Log: {self.session_log.get_log_path()} ]",
-                bg=COLORS["bg_panel"], fg=COLORS["cyan_dim"],
-                font=("Courier New", 9), anchor="w",
+                bg=COLORS["bg_panel"],
+                fg=COLORS["cyan_dim"],
+                font=("Courier New", 9),
+                anchor="w",
             ).pack(anchor="w", padx=8, pady=3)
 
         # -- Findings summary --
         summary_lines = []
         ports = summary.get("ports", [])
         if ports:
-            summary_lines.append(f"OPEN PORTS: {', '.join(str(p['port']) + '/' + p['proto'] + ' ' + p['service'] for p in ports[:10])}")
+            summary_lines.append(
+                f"OPEN PORTS: {', '.join(str(p['port']) + '/' + p['proto'] + ' ' + p['service'] for p in ports[:10])}"
+            )
         techs = summary.get("technologies", [])
         if techs:
             summary_lines.append(f"TECH STACK: {', '.join(techs[:8])}")
@@ -1587,22 +1911,33 @@ class PlanetHackGUI:
         nuclei = summary.get("nuclei", [])
         if nuclei:
             crit = [f for f in nuclei if f.get("severity") in ("critical", "high")]
-            summary_lines.append(f"NUCLEI: {len(nuclei)} finding(s), {len(crit)} critical/high")
+            summary_lines.append(
+                f"NUCLEI: {len(nuclei)} finding(s), {len(crit)} critical/high"
+            )
 
         if summary_lines:
-            findings_frame = tk.Frame(self.report_frame, bg=COLORS["bg_panel"],
-                                      highlightbackground=COLORS["border_dim"], highlightthickness=1)
+            findings_frame = tk.Frame(
+                self.report_frame,
+                bg=COLORS["bg_panel"],
+                highlightbackground=COLORS["border_dim"],
+                highlightthickness=1,
+            )
             findings_frame.pack(fill=tk.X, pady=(0, 4))
             tk.Label(
-                findings_frame, text="[ FINDINGS SUMMARY ]",
-                bg=COLORS["bg_panel"], fg=COLORS["magenta"],
+                findings_frame,
+                text="[ FINDINGS SUMMARY ]",
+                bg=COLORS["bg_panel"],
+                fg=COLORS["magenta"],
                 font=("Courier New", 10, "bold"),
             ).pack(anchor="w", padx=8, pady=(4, 2))
             for line in summary_lines:
                 tk.Label(
-                    findings_frame, text=f"  {line}",
-                    bg=COLORS["bg_panel"], fg=COLORS["fg"],
-                    font=("Courier New", 9), anchor="w",
+                    findings_frame,
+                    text=f"  {line}",
+                    bg=COLORS["bg_panel"],
+                    fg=COLORS["fg"],
+                    font=("Courier New", 9),
+                    anchor="w",
                 ).pack(anchor="w", padx=12)
 
         # -- Report buttons --
@@ -1610,34 +1945,50 @@ class PlanetHackGUI:
         report_row.pack(fill=tk.X, pady=4)
 
         tk.Label(
-            report_row, text="SAVE REPORT:",
-            bg=COLORS["bg"], fg=COLORS["cyan"],
+            report_row,
+            text="SAVE REPORT:",
+            bg=COLORS["bg"],
+            fg=COLORS["cyan"],
             font=("Courier New", 10, "bold"),
         ).pack(side=tk.LEFT, padx=6)
 
         NeonButton(
-            report_row, text="MARKDOWN (.md)", width=160, height=30,
-            fg=COLORS["fg"], border=COLORS["fg"],
+            report_row,
+            text="MARKDOWN (.md)",
+            width=160,
+            height=30,
+            fg=COLORS["fg"],
+            border=COLORS["fg"],
             command=lambda: self._save_report("md"),
             font=("Courier New", 9, "bold"),
         ).pack(side=tk.LEFT, padx=4)
 
         NeonButton(
-            report_row, text="HTML (.html)", width=140, height=30,
-            fg=COLORS["cyan"], border=COLORS["cyan"],
+            report_row,
+            text="HTML (.html)",
+            width=140,
+            height=30,
+            fg=COLORS["cyan"],
+            border=COLORS["cyan"],
             command=lambda: self._save_report("html"),
             font=("Courier New", 9, "bold"),
         ).pack(side=tk.LEFT, padx=4)
 
         # -- Next steps with editable commands --
         if next_steps:
-            ns_frame = tk.Frame(self.report_frame, bg=COLORS["bg_panel"],
-                                highlightbackground=COLORS["border_dim"], highlightthickness=1)
+            ns_frame = tk.Frame(
+                self.report_frame,
+                bg=COLORS["bg_panel"],
+                highlightbackground=COLORS["border_dim"],
+                highlightthickness=1,
+            )
             ns_frame.pack(fill=tk.X, pady=(4, 0))
 
             tk.Label(
-                ns_frame, text="[ RECOMMENDED NEXT STEPS -- EDIT AND RUN ]",
-                bg=COLORS["bg_panel"], fg=COLORS["magenta"],
+                ns_frame,
+                text="[ RECOMMENDED NEXT STEPS -- EDIT AND RUN ]",
+                bg=COLORS["bg_panel"],
+                fg=COLORS["magenta"],
                 font=("Courier New", 10, "bold"),
             ).pack(anchor="w", padx=8, pady=(4, 2))
 
@@ -1646,25 +1997,33 @@ class PlanetHackGUI:
                 step_frame.pack(fill=tk.X, padx=8, pady=3)
 
                 tk.Label(
-                    step_frame, text=step["reason"],
-                    bg=COLORS["bg_panel"], fg=COLORS["fg_dim"],
-                    font=("Courier New", 9), anchor="w",
+                    step_frame,
+                    text=step["reason"],
+                    bg=COLORS["bg_panel"],
+                    fg=COLORS["fg_dim"],
+                    font=("Courier New", 9),
+                    anchor="w",
                 ).pack(anchor="w")
 
                 cmd_row = tk.Frame(step_frame, bg=COLORS["bg_panel"])
                 cmd_row.pack(fill=tk.X, pady=(1, 0))
 
                 tk.Label(
-                    cmd_row, text="$",
-                    bg=COLORS["bg_panel"], fg=COLORS["yellow"],
+                    cmd_row,
+                    text="$",
+                    bg=COLORS["bg_panel"],
+                    fg=COLORS["yellow"],
                     font=("Courier New", 10, "bold"),
                 ).pack(side=tk.LEFT, padx=(0, 4))
 
                 cmd_entry = tk.Entry(
-                    cmd_row, bg=COLORS["bg_input"], fg=COLORS["fg"],
+                    cmd_row,
+                    bg=COLORS["bg_input"],
+                    fg=COLORS["fg"],
                     insertbackground=COLORS["fg"],
                     font=("Courier New", 10),
-                    bd=0, highlightthickness=1,
+                    bd=0,
+                    highlightthickness=1,
                     highlightcolor=COLORS["cyan"],
                     highlightbackground=COLORS["border_dim"],
                 )
@@ -1672,15 +2031,23 @@ class PlanetHackGUI:
                 cmd_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
 
                 NeonButton(
-                    cmd_row, text="RUN", width=70, height=26,
-                    fg=COLORS["fg"], border=COLORS["fg"],
+                    cmd_row,
+                    text="RUN",
+                    width=70,
+                    height=26,
+                    fg=COLORS["fg"],
+                    border=COLORS["fg"],
                     command=lambda e=cmd_entry: self._run_next_step_cmd(e.get()),
                     font=("Courier New", 9, "bold"),
                 ).pack(side=tk.LEFT, padx=2)
 
                 NeonButton(
-                    cmd_row, text="COPY", width=70, height=26,
-                    fg=COLORS["cyan_dim"], border=COLORS["cyan_dim"],
+                    cmd_row,
+                    text="COPY",
+                    width=70,
+                    height=26,
+                    fg=COLORS["cyan_dim"],
+                    border=COLORS["cyan_dim"],
                     command=lambda e=cmd_entry: self.copy_to_clipboard(e.get()),
                     font=("Courier New", 9, "bold"),
                 ).pack(side=tk.LEFT, padx=2)
@@ -1707,6 +2074,7 @@ class PlanetHackGUI:
         tool_name = cmd.split()[0] if cmd else "cmd"
         sid = self._open_new_terminal(tool_name)
         sess = self._get_session(sid)
+        assert sess is not None
         term = sess["terminal"]
         output_buf: list = []
 
@@ -1719,11 +2087,16 @@ class PlanetHackGUI:
             self.root.after(0, lambda: self._log_to(term, msg))
 
         def on_done(code, _buf=output_buf):
-            self.session_log.record_output(tool_name, cmd, "".join(_buf), code, source="next_step")
-            self.root.after(0, lambda: (
-                self.status_var.set(f"EXEC > Command completed (exit {code})"),
-                self._refresh_session_panel(),
-            ))
+            self.session_log.record_output(
+                tool_name, cmd, "".join(_buf), code, source="next_step"
+            )
+            self.root.after(
+                0,
+                lambda: (
+                    self.status_var.set(f"EXEC > Command completed (exit {code})"),
+                    self._refresh_session_panel(),
+                ),
+            )
 
         run_tool(cmd, on_out, on_complete=on_done)
 
@@ -1733,7 +2106,9 @@ class PlanetHackGUI:
         from utils.helpers import is_ip_address
 
         hosts_str = ", ".join(hostnames)
-        self.log_terminal(f"\n[*] Discovered hostnames not in /etc/hosts: {hosts_str}\n", "phase")
+        self.log_terminal(
+            f"\n[*] Discovered hostnames not in /etc/hosts: {hosts_str}\n", "phase"
+        )
 
         ip = target_ip if is_ip_address(target_ip) else ""
         if not ip:
@@ -1748,7 +2123,7 @@ class PlanetHackGUI:
             f"Recon output contains hostnames not in /etc/hosts:\n\n"
             f"{hosts_str}\n\n"
             f"Add \"{ip}    {' '.join(hostnames)}\" to /etc/hosts?\n"
-            f"(Requires sudo)"
+            f"(Requires sudo)",
         )
         if answer:
             ok, msg = add_to_hosts_file(ip, hostnames)
@@ -1795,10 +2170,13 @@ class PlanetHackGUI:
 
         sid = self._open_new_terminal(f"{module_id.upper()}")
         sess = self._get_session(sid)
+        assert sess is not None
         term = sess["terminal"]
 
         self.status_var.set(f"MODULE > Running {module_id.upper()} on {target}...")
-        self._log_to(term, f"[*] Starting {module_id.upper()} module on {target}\n", "phase")
+        self._log_to(
+            term, f"[*] Starting {module_id.upper()} module on {target}\n", "phase"
+        )
 
         thread = threading.Thread(
             target=self._execute_module,
@@ -1810,28 +2188,58 @@ class PlanetHackGUI:
     def _execute_module(self, module_id: str, target: str, term):
         output_buf = []
         try:
-            self.root.after(0, lambda: self._log_to(term, f"[+] Module {module_id.upper()} executing\n", "success"))
-            self.root.after(0, lambda: self._log_to(term, f"[*] Target: {target}\n", "cmd"))
+            self.root.after(
+                0,
+                lambda: self._log_to(
+                    term, f"[+] Module {module_id.upper()} executing\n", "success"
+                ),
+            )
+            self.root.after(
+                0, lambda: self._log_to(term, f"[*] Target: {target}\n", "cmd")
+            )
 
             module_class = MODULE_REGISTRY.get(module_id)
             if module_class:
                 module = module_class(self.config, self.logger)
                 result = module.run(target)
-                result_str = result.get("summary", str(result)) if isinstance(result, dict) else str(result) if result else ""
+                result_str = (
+                    result.get("summary", str(result))
+                    if isinstance(result, dict)
+                    else str(result) if result else ""
+                )
                 output_buf.append(result_str)
-                self.root.after(0, lambda: self._log_to(term, f"[+] Result: {result}\n", "success"))
+                self.root.after(
+                    0, lambda: self._log_to(term, f"[+] Result: {result}\n", "success")
+                )
             else:
-                self.root.after(0, lambda: self._log_to(term, "[!] Module not found in registry\n", "error"))
+                self.root.after(
+                    0,
+                    lambda: self._log_to(
+                        term, "[!] Module not found in registry\n", "error"
+                    ),
+                )
 
             self.session_log.set_target(target)
-            self.session_log.record_output(module_id, f"module:{module_id}", "\n".join(output_buf), 0, source="module")
-            self.root.after(0, lambda: (
-                self.status_var.set("MODULE > Execution completed"),
-                self._refresh_session_panel(),
-            ))
+            self.session_log.record_output(
+                module_id,
+                f"module:{module_id}",
+                "\n".join(output_buf),
+                0,
+                source="module",
+            )
+            self.root.after(
+                0,
+                lambda: (
+                    self.status_var.set("MODULE > Execution completed"),
+                    self._refresh_session_panel(),
+                ),
+            )
         except Exception as e:
-            self.root.after(0, lambda: self._log_to(term, f"[!] Error: {str(e)}\n", "error"))
-            self.root.after(0, lambda: self.status_var.set(f"ERROR > {str(e)}"))
+            err_msg = str(e)
+            self.root.after(
+                0, lambda: self._log_to(term, f"[!] Error: {err_msg}\n", "error")
+            )
+            self.root.after(0, lambda: self.status_var.set(f"ERROR > {err_msg}"))
 
     def _log_to(self, term_widget, message: str, tag: str = ""):
         """Write to a specific terminal widget (thread-safe when called via root.after)."""

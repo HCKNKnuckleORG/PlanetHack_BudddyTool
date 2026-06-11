@@ -9,7 +9,7 @@ import re
 import socket
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from utils.helpers import is_ip_address
@@ -37,7 +37,9 @@ def read_hosts_file() -> Dict[str, List[str]]:
     return mapping
 
 
-def hostname_in_hosts(hostname: str, hosts_map: Optional[Dict[str, List[str]]] = None) -> Optional[str]:
+def hostname_in_hosts(
+    hostname: str, hosts_map: Optional[Dict[str, List[str]]] = None
+) -> Optional[str]:
     """Check if hostname is in /etc/hosts. Returns the IP if found, None otherwise."""
     if hosts_map is None:
         hosts_map = read_hosts_file()
@@ -94,9 +96,20 @@ def check_http_redirect(target: str, timeout: int = 5) -> Optional[str]:
 
     try:
         result = subprocess.run(
-            ["curl", "-sIL", "-o", "/dev/null", "-w", "%{url_effective}", "--max-time", str(timeout),
-             f"http://{target}"],
-            capture_output=True, text=True, timeout=timeout + 2,
+            [
+                "curl",
+                "-sIL",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{url_effective}",
+                "--max-time",
+                str(timeout),
+                f"http://{target}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 2,
         )
         final_url = result.stdout.strip()
         if final_url:
@@ -146,7 +159,9 @@ def add_to_hosts_file(ip: str, hostnames: List[str]) -> Tuple[bool, str]:
         return False, err
 
     ip_clean = ip.strip()
-    hostnames = [h.strip().lower() for h in hostnames if isinstance(h, str) and h.strip()]
+    hostnames = [
+        h.strip().lower() for h in hostnames if isinstance(h, str) and h.strip()
+    ]
     if not hostnames:
         return False, "No valid hostnames to add"
 
@@ -162,7 +177,10 @@ def add_to_hosts_file(ip: str, hostnames: List[str]) -> Tuple[bool, str]:
         line = f"{ip_clean}    {' '.join(new_hosts)}\n"
         result = subprocess.run(
             ["sudo", "tee", "-a", "/etc/hosts"],
-            input=line, capture_output=True, text=True, timeout=30,
+            input=line,
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         if result.returncode == 0:
             return True, f"Added to /etc/hosts: {ip_clean} -> {', '.join(new_hosts)}"
@@ -176,7 +194,9 @@ def add_to_hosts_file(ip: str, hostnames: List[str]) -> Tuple[bool, str]:
 
 def extract_hostnames_from_output(output: str) -> List[str]:
     """Extract potential hostnames/subdomains from tool output for /etc/hosts."""
-    hostname_re = re.compile(r'(?:https?://)?([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+)')
+    hostname_re = re.compile(
+        r"(?:https?://)?([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+)"
+    )
     found = set()
     for match in hostname_re.finditer(output):
         hostname = match.group(1).lower()
@@ -195,7 +215,7 @@ def run_preflight_check(target: str, preset: str = "full") -> Dict:
     - all_hosts_entries: current /etc/hosts mapping for this IP
     - message: human-readable summary
     """
-    result = {
+    result: Dict[str, Any] = {
         "target": target,
         "preset": preset,
         "redirect_hostname": None,
@@ -219,18 +239,24 @@ def run_preflight_check(target: str, preset: str = "full") -> Dict:
             if mapped_ip:
                 result["hosts_ip"] = mapped_ip
                 result["hosts_ok"] = True
-                result["message"] = f"Target redirects to {redirect_host} (mapped to {mapped_ip} in /etc/hosts)"
+                result["message"] = (
+                    f"Target redirects to {redirect_host} (mapped to {mapped_ip} in /etc/hosts)"
+                )
             elif can_resolve(redirect_host):
                 result["hosts_ok"] = True
-                result["message"] = f"Target redirects to {redirect_host} (resolves via DNS)"
+                result["message"] = (
+                    f"Target redirects to {redirect_host} (resolves via DNS)"
+                )
             else:
                 result["hosts_ok"] = False
                 result["needs_hosts_update"] = True
-                result["message"] = f"Target redirects to {redirect_host} which does NOT resolve. Add to /etc/hosts."
+                result["message"] = (
+                    f"Target redirects to {redirect_host} which does NOT resolve. Add to /etc/hosts."
+                )
                 result["warnings"].append(
                     f"HTTP redirect detected: {target} -> {redirect_host}\n"
                     f"This hostname cannot be resolved. You need to add it to /etc/hosts:\n"
-                    f"  echo \"{target}    {redirect_host}\" | sudo tee -a /etc/hosts"
+                    f'  echo "{target}    {redirect_host}" | sudo tee -a /etc/hosts'
                 )
         else:
             result["message"] = "No redirect detected. Target responds directly on IP."
@@ -241,18 +267,26 @@ def run_preflight_check(target: str, preset: str = "full") -> Dict:
             if not mapped_ip:
                 result["hosts_ok"] = False
                 result["needs_hosts_update"] = True
-                result["message"] = f"Hostname {target} does not resolve and is not in /etc/hosts."
+                result["message"] = (
+                    f"Hostname {target} does not resolve and is not in /etc/hosts."
+                )
                 result["warnings"].append(
                     f"Cannot resolve {target}. If this is a CTF box, add it to /etc/hosts:\n"
-                    f"  echo \"<TARGET_IP>    {target}\" | sudo tee -a /etc/hosts"
+                    f'  echo "<TARGET_IP>    {target}" | sudo tee -a /etc/hosts'
                 )
             else:
                 result["hosts_ip"] = mapped_ip
-                result["message"] = f"Hostname {target} resolves via /etc/hosts -> {mapped_ip}"
+                result["message"] = (
+                    f"Hostname {target} resolves via /etc/hosts -> {mapped_ip}"
+                )
         else:
             result["message"] = f"Hostname {target} resolves OK."
 
-    if preset in ("htb", "ctf") and is_ip_address(target) and not result["all_hosts_entries"]:
+    if (
+        preset in ("htb", "ctf")
+        and is_ip_address(target)
+        and not result["all_hosts_entries"]
+    ):
         result["warnings"].append(
             f"CTF preset selected but {target} has no /etc/hosts entries. "
             f"Many CTF boxes require hostname mapping for vhost routing."

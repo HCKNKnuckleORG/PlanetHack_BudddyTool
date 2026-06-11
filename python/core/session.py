@@ -13,7 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional, Callable
 
 from core.report import (
-    PARSERS, suggest_next_steps, ReconReport,
+    PARSERS,
+    suggest_next_steps,
+    ReconReport,
 )
 
 _SESSIONS_DIR = Path("sessions")
@@ -42,8 +44,14 @@ class SessionLog:
         """Register a callback that fires after each tool completes."""
         self._on_update_callbacks.append(callback)
 
-    def record_output(self, tool: str, command: str, output: str,
-                      exit_code: int = 0, source: str = "recon"):
+    def record_output(
+        self,
+        tool: str,
+        command: str,
+        output: str,
+        exit_code: int = 0,
+        source: str = "recon",
+    ):
         """Record a tool's output. Called after every tool finishes."""
         entry = {
             "timestamp": datetime.now().isoformat(),
@@ -77,6 +85,7 @@ class SessionLog:
     def _write_to_disk(self, entry: dict, output: str):
         """Append entry + output to the session log file."""
         import logging
+
         try:
             with open(self._log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry) + "\n")
@@ -85,7 +94,10 @@ class SessionLog:
                 f.write("---\n")
         except Exception as e:
             logging.getLogger(__name__).error(
-                "session _write_to_disk failed: %s path=%s", e, self._log_path, exc_info=True
+                "session _write_to_disk failed: %s path=%s",
+                e,
+                self._log_path,
+                exc_info=True,
             )
 
     def get_findings_raw(self) -> Dict[str, Any]:
@@ -146,7 +158,8 @@ class SessionLog:
                         "os": os_info,
                         "scan_target": scan_target,
                         "redirect_hostname": redirect_hostname,
-                        "summary": f"{len(ports)} port(s) open" + (f", OS: {os_info[0][:60]}..." if os_info else ""),
+                        "summary": f"{len(ports)} port(s) open"
+                        + (f", OS: {os_info[0][:60]}..." if os_info else ""),
                     }
                 elif tool == "whatweb":
                     techs = data if isinstance(data, list) else []
@@ -170,7 +183,12 @@ class SessionLog:
                     }
                 elif tool == "nuclei":
                     items = data if isinstance(data, list) else []
-                    crits = [f for f in items if isinstance(f, dict) and f.get("severity") in ("critical", "high")]
+                    crits = [
+                        f
+                        for f in items
+                        if isinstance(f, dict)
+                        and f.get("severity") in ("critical", "high")
+                    ]
                     result[tool] = {
                         "findings": items[:20],
                         "count": len(items),
@@ -180,9 +198,18 @@ class SessionLog:
                 else:
                     raw_output = self.tool_outputs.get(tool, "")
                     if isinstance(raw_output, str) and len(raw_output) > 500:
-                        summary = raw_output[:200] + "... (" + str(len(raw_output)) + " chars)"
+                        summary = (
+                            raw_output[:200]
+                            + "... ("
+                            + str(len(raw_output))
+                            + " chars)"
+                        )
                     else:
-                        summary = str(data)[:80] + "..." if data and len(str(data)) > 80 else (str(raw_output)[:80] if raw_output else "—")
+                        summary = (
+                            str(data)[:80] + "..."
+                            if data and len(str(data)) > 80
+                            else (str(raw_output)[:80] if raw_output else "—")
+                        )
                     result[tool] = {"raw": data or raw_output, "summary": summary}
             return result
 
@@ -190,6 +217,7 @@ class SessionLog:
         """Return cumulative attack recommendations based on everything collected."""
         with self._lock:
             from core.report import _extract_discovered_hostnames
+
             discovered = _extract_discovered_hostnames(self.tool_outputs)
             return suggest_next_steps(self.findings, self.target, discovered)
 
@@ -216,7 +244,9 @@ class SessionLog:
         if tool == "nmap":
             ports = parsed.get("ports", [])
             if ports:
-                port_strs = [f"{p['port']}/{p['proto']} {p['service']}" for p in ports[:10]]
+                port_strs = [
+                    f"{p['port']}/{p['proto']} {p['service']}" for p in ports[:10]
+                ]
                 lines.append(f"OPEN PORTS: {', '.join(port_strs)}")
             os_info = parsed.get("os", [])
             if os_info:
@@ -249,9 +279,13 @@ class SessionLog:
         elif tool == "nuclei":
             if parsed:
                 crits = [f for f in parsed if f.get("severity") in ("critical", "high")]
-                lines.append(f"FINDINGS: {len(parsed)} total, {len(crits)} critical/high")
+                lines.append(
+                    f"FINDINGS: {len(parsed)} total, {len(crits)} critical/high"
+                )
                 for f in parsed[:5]:
-                    lines.append(f"  [{f.get('severity', '?').upper()}] {f.get('name', f.get('template', '?'))}")
+                    lines.append(
+                        f"  [{f.get('severity', '?').upper()}] {f.get('name', f.get('template', '?'))}"
+                    )
             else:
                 lines.append("No vulnerabilities detected")
 

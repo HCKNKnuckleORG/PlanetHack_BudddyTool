@@ -75,4 +75,6 @@ def get_default_command(module_id: str, target: str, config=None) -> str:
         "gobuster": f"gobuster dir -u {base} -w {shlex.quote(gob_wl)} -t 50",
     }
 
-    return defaults.get(module_id, f"# Edit for {module_id} - e.g. nuclei -u {base} -tags ...")
+    return defaults.get(
+        module_id, f"# Edit for {module_id} - e.g. nuclei -u {base} -tags ..."
+    )

@@ -22,7 +22,7 @@ class XSSModule(BaseModule):
         if not self.validate_target(target):
             return {"error": "Invalid target format"}
 
-        results = {
+        results: Dict[str, Any] = {
             "target": target,
             "vulnerable": False,
             "xss_type": [],

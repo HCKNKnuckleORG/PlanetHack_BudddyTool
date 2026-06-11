@@ -9,11 +9,11 @@ import threading
 from typing import Callable, Optional, List, Dict
 from pathlib import Path
 
-
 # ANSI escape codes - strip so UI shows plain text (whatweb, nmap, etc. use colors)
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]|[\x1b\x9b]")
 # Fallback: [1m, [0m etc. when ESC is stripped (e.g. copy/paste, JSON)
 _ANSI_LITERAL_RE = re.compile(r"\[[0-9;]+m")
+
 
 def strip_ansi(text: str) -> str:
     """Remove ANSI escape sequences for clean display in UI."""
@@ -105,6 +105,7 @@ def run_tools_sequential(
                           that BLOCKS until the user confirms. Return True to continue,
                           False to stop.
     """
+
     def _run():
         total = len(phases)
         collected: Dict[str, str] = {}
@@ -120,7 +121,9 @@ def run_tools_sequential(
                 if on_progress:
                     on_progress(idx, total, phase)
 
-                on_output(f"\n[*] === Phase {phase['phase']}: {phase['purpose']} ({tool_name}) ===\n")
+                on_output(
+                    f"\n[*] === Phase {phase['phase']}: {phase['purpose']} ({tool_name}) ===\n"
+                )
                 on_output(f"[*] $ {cmd}\n\n")
 
                 done = threading.Event()
@@ -150,10 +153,14 @@ def run_tools_sequential(
                         phase, exit_code[0] or 0, phase_output, collected
                     )
                     if not should_continue:
-                        on_output(f"\n[!] === USER STOPPED AFTER PHASE {phase['phase']} ===\n")
+                        on_output(
+                            f"\n[!] === USER STOPPED AFTER PHASE {phase['phase']} ===\n"
+                        )
                         break
             else:
-                on_output(f"[!] Phase {phase['phase']}: {phase['tool']} not found, skipping\n")
+                on_output(
+                    f"[!] Phase {phase['phase']}: {phase['tool']} not found, skipping\n"
+                )
 
         if on_all_complete:
             on_all_complete(collected)

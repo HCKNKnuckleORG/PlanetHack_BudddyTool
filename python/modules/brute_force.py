@@ -33,11 +33,14 @@ class BruteForceModule(BaseModule):
         tools = raw_config.get("tools", {})
         kali = tools.get("kali", {})
         wordlist_dir = kali.get("wordlist_dir", "/usr/share/wordlists")
-        users_list = kali.get("users_wordlist", f"{wordlist_dir}/metasploit/unix_users.txt")
+        users_list = kali.get(
+            "users_wordlist", f"{wordlist_dir}/metasploit/unix_users.txt"
+        )
         pass_list = kali.get("passwords_wordlist", f"{wordlist_dir}/rockyou.txt")
 
         # Normalize target for different protocols
         from urllib.parse import urlparse
+
         host = target
         if validate_url(target):
             parsed = urlparse(target)
@@ -60,54 +63,72 @@ class BruteForceModule(BaseModule):
         commands: List[Dict[str, str]] = []
 
         # SSH
-        commands.append({
-            "service": "SSH (port 22)",
-            "command": f"hydra -L {users_list} -P {pass_list} ssh://{host_safe} -t 4",
-            "note": "Common usernames + rockyou passwords",
-        })
+        commands.append(
+            {
+                "service": "SSH (port 22)",
+                "command": f"hydra -L {users_list} -P {pass_list} ssh://{host_safe} -t 4",
+                "note": "Common usernames + rockyou passwords",
+            }
+        )
 
         # FTP
-        commands.append({
-            "service": "FTP (port 21)",
-            "command": f"hydra -L {users_list} -P {pass_list} ftp://{host_safe} -t 4",
-            "note": "Try anonymous:anonymous first manually",
-        })
+        commands.append(
+            {
+                "service": "FTP (port 21)",
+                "command": f"hydra -L {users_list} -P {pass_list} ftp://{host_safe} -t 4",
+                "note": "Try anonymous:anonymous first manually",
+            }
+        )
 
         # HTTP form (generic login)
         if "http" in target.lower() or validate_url(target):
-            base_url = target if target.startswith(("http://", "https://")) else f"http://{target}"
+            base_url = (
+                target
+                if target.startswith(("http://", "https://"))
+                else f"http://{target}"
+            )
             base_safe = shlex.quote(base_url)
-            commands.append({
-                "service": "HTTP POST form",
-                "command": f"hydra -L {users_list} -P {pass_list} {base_safe} http-post-form '/login:user=^USER^&pass=^PASS^:F=incorrect'",
-                "note": "Edit form path and params to match target",
-            })
-            commands.append({
-                "service": "HTTP Basic Auth",
-                "command": f"hydra -L {users_list} -P {pass_list} {base_safe} http-get /",
-                "note": "For Basic auth protected paths",
-            })
+            commands.append(
+                {
+                    "service": "HTTP POST form",
+                    "command": f"hydra -L {users_list} -P {pass_list} {base_safe} http-post-form '/login:user=^USER^&pass=^PASS^:F=incorrect'",
+                    "note": "Edit form path and params to match target",
+                }
+            )
+            commands.append(
+                {
+                    "service": "HTTP Basic Auth",
+                    "command": f"hydra -L {users_list} -P {pass_list} {base_safe} http-get /",
+                    "note": "For Basic auth protected paths",
+                }
+            )
 
         # MySQL
-        commands.append({
-            "service": "MySQL (port 3306)",
-            "command": f"hydra -L {users_list} -P {pass_list} {host_safe} mysql -t 4",
-            "note": "Common: root, admin",
-        })
+        commands.append(
+            {
+                "service": "MySQL (port 3306)",
+                "command": f"hydra -L {users_list} -P {pass_list} {host_safe} mysql -t 4",
+                "note": "Common: root, admin",
+            }
+        )
 
         # RDP
-        commands.append({
-            "service": "RDP (port 3389)",
-            "command": f"hydra -L {users_list} -P {pass_list} rdp://{host_safe} -t 4",
-            "note": "Windows Remote Desktop",
-        })
+        commands.append(
+            {
+                "service": "RDP (port 3389)",
+                "command": f"hydra -L {users_list} -P {pass_list} rdp://{host_safe} -t 4",
+                "note": "Windows Remote Desktop",
+            }
+        )
 
         # SMB (Windows shares)
-        commands.append({
-            "service": "SMB (port 445)",
-            "command": f"hydra -L {users_list} -P {pass_list} smb://{host_safe} -t 4",
-            "note": "Windows file shares",
-        })
+        commands.append(
+            {
+                "service": "SMB (port 445)",
+                "command": f"hydra -L {users_list} -P {pass_list} smb://{host_safe} -t 4",
+                "note": "Windows file shares",
+            }
+        )
 
         lines = [
             f"[*] BRUTE FORCE MODULE - Target: {target}",
@@ -120,7 +141,9 @@ class BruteForceModule(BaseModule):
             lines.append(f"  $ {c['command']}")
             lines.append(f"  # {c['note']}")
             lines.append("")
-        lines.append("[!] Only test systems you own or have explicit permission to test.")
+        lines.append(
+            "[!] Only test systems you own or have explicit permission to test."
+        )
         summary = "\n".join(lines)
 
         results = {

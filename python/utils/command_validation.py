@@ -10,15 +10,33 @@ from typing import Tuple, Optional
 
 # Allowlist of tool names that may be executed (first token of command)
 # These are Kali/security testing tools used by PlanetHack
-ALLOWED_TOOL_NAMES = frozenset({
-    "nmap", "nikto", "gobuster", "feroxbuster", "dirb", "whatweb", "nuclei",
-    "sqlmap", "hydra", "curl", "dirsearch", "wget", "wpscan",
-    "ffuf", "amass", "subfinder", "masscan", "searchsploit",
-    "python3", "python",  # for module invocations
-})
+ALLOWED_TOOL_NAMES = frozenset(
+    {
+        "nmap",
+        "nikto",
+        "gobuster",
+        "feroxbuster",
+        "dirb",
+        "whatweb",
+        "nuclei",
+        "sqlmap",
+        "hydra",
+        "curl",
+        "dirsearch",
+        "wget",
+        "wpscan",
+        "ffuf",
+        "amass",
+        "subfinder",
+        "masscan",
+        "searchsploit",
+        "python3",
+        "python",  # for module invocations
+    }
+)
 
 # Shell metacharacters that enable command injection
-_SHELL_META_RE = re.compile(r'[;&|`$(){}!<>\\\n\r]')
+_SHELL_META_RE = re.compile(r"[;&|`$(){}!<>\\\n\r]")
 
 # Max command length to prevent DoS
 MAX_COMMAND_LEN = 4096

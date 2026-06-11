@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def _get_config():
     try:
         from flask import current_app
+
         cfg = current_app.config.get("PH_CONFIG")
         if cfg is None:
             return {}
@@ -35,6 +36,7 @@ def ollama_generate(prompt: str, system: Optional[str] = None) -> Tuple[bool, st
 
     try:
         import requests
+
         payload = {"model": model, "prompt": prompt, "stream": False}
         if system:
             payload["system"] = system
@@ -74,5 +76,7 @@ def analyze_response(command: str, output: str) -> Tuple[bool, str]:
         "Analyze the command output and summarize: potential vulnerabilities, interesting findings, suggested next steps. "
         "Be concise and actionable."
     )
-    prompt = f"Command run:\n{command}\n\nOutput:\n{output[:8000]}\n\nAnalysis (concise):"
+    prompt = (
+        f"Command run:\n{command}\n\nOutput:\n{output[:8000]}\n\nAnalysis (concise):"
+    )
     return ollama_generate(prompt, system=system)
