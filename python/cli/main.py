@@ -36,10 +36,12 @@ FANCY_BANNER = """
 
 _ascii_mode = False
 
+
 def print_banner():
     """Print PlanetHack banner (uses plain ASCII if --ascii flag is set)."""
     banner = UNICODE_BANNER if _ascii_mode else FANCY_BANNER
     console.print(Panel(banner, style="bold green"))
+
 
 def show_modules():
     """Display available modules from Bug Bounty Bootcamp"""
@@ -54,6 +56,7 @@ def show_modules():
         table.add_row(module_id, info["name"], info["description"])
 
     console.print(table)
+
 
 def run_module(module_id: str, target: str, config, logger):
     """Run a specific module"""
@@ -75,18 +78,19 @@ def run_module(module_id: str, target: str, config, logger):
         logger.error(f"Error running module: {e}")
         console.print(f"[red][!][/red] Error: {str(e)}")
 
+
 def interactive_mode(config, logger):
     """Interactive CLI mode"""
     print_banner()
-    
+
     while True:
         console.print("\n[bold cyan]PlanetHack CLI[/bold cyan]")
         console.print("1. List modules")
         console.print("2. Run module")
         console.print("3. Exit")
-        
+
         choice = Prompt.ask("\nSelect option", choices=["1", "2", "3"])
-        
+
         if choice == "1":
             show_modules()
         elif choice == "2":
@@ -96,6 +100,7 @@ def interactive_mode(config, logger):
         elif choice == "3":
             console.print("[green]Hack the Planet![/green]")
             sys.exit(0)
+
 
 def run_cli(args, config, logger, ascii_mode=False):
     """Run CLI interface"""

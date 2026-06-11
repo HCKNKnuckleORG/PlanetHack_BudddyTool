@@ -20,9 +20,17 @@ MAX_REQUEST_BODY_BYTES = 64 * 1024  # 64KB
 
 # ── Allowlists (A03: Injection prevention) ──────────────────────────────────
 ALLOWED_TICKET_TYPES = frozenset({"bug", "feature", "question"})
-ALLOWED_COMPONENTS = frozenset({
-    "web", "gui", "cli", "recon", "modules", "docker", "frontend",
-})
+ALLOWED_COMPONENTS = frozenset(
+    {
+        "web",
+        "gui",
+        "cli",
+        "recon",
+        "modules",
+        "docker",
+        "frontend",
+    }
+)
 
 # Dangerous patterns (strip or reject)
 NULL_BYTE = re.compile(r"\x00")
@@ -112,15 +120,21 @@ def validate_support_ticket(data: dict) -> Tuple[bool, Optional[str], Optional[d
         return s[:max_len] if len(s) > max_len else s
 
     steps = sanitize_for_storage(clamp(data.get("steps") or "", MAX_TEXT_FIELD_LEN))
-    expected = sanitize_for_storage(clamp(data.get("expected") or "", MAX_TEXT_FIELD_LEN))
+    expected = sanitize_for_storage(
+        clamp(data.get("expected") or "", MAX_TEXT_FIELD_LEN)
+    )
     actual = sanitize_for_storage(clamp(data.get("actual") or "", MAX_TEXT_FIELD_LEN))
 
-    return True, None, {
-        "title": title,
-        "type": ticket_type,
-        "component": component,
-        "target": target,
-        "steps": steps,
-        "expected": expected,
-        "actual": actual,
-    }
+    return (
+        True,
+        None,
+        {
+            "title": title,
+            "type": ticket_type,
+            "component": component,
+            "target": target,
+            "steps": steps,
+            "expected": expected,
+            "actual": actual,
+        },
+    )

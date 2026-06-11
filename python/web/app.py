@@ -21,9 +21,17 @@ def _safe_download_name(path: str) -> str:
     name = re.sub(r"[^A-Za-z0-9._-]", "_", name)
     return name or "report"
 
+
 from flask import (
-    Flask, render_template, request, jsonify, Response, redirect, url_for,
-    send_file, send_from_directory,
+    Flask,
+    render_template,
+    request,
+    jsonify,
+    Response,
+    redirect,
+    url_for,
+    send_file,
+    send_from_directory,
 )
 
 from core.recon_plan import build_recon_plan
@@ -103,11 +111,12 @@ _session_log = SessionLog()
 
 from web.jobs import create_job as _create_job, get_job as _get_job
 
-
 # ── Flask App Factory ────────────────────────────────────────────────────────
+
 
 def create_app(config=None, logger=None):
     from pathlib import Path
+
     template_dir = Path(__file__).parent / "templates"
     static_dir = Path(__file__).parent / "static"
 
@@ -135,6 +144,7 @@ def create_app(config=None, logger=None):
 
     # Register API v1 blueprint (for TypeScript SPA / external consumers)
     from web.api_blueprint import api_v1
+
     app.register_blueprint(api_v1)
 
     # CORS for SPA dev server (Vite typically on 5173)
@@ -170,6 +180,7 @@ def create_app(config=None, logger=None):
         if _use_spa and (_spa_dist / "assets").exists():
             return send_from_directory(_spa_dist / "assets", filename)
         from flask import abort
+
         abort(404)
 
     # ── Routes ───────────────────────────────────────────────────────────
@@ -277,7 +288,9 @@ def create_app(config=None, logger=None):
             phases_data = build_recon_plan(target, config, preset=preset)
             for phase in phases_data:
                 cmd = resolve_tool_command(phase)
-                phase["resolved_cmd"] = phase.get("command", "(tool not found)") if not cmd else cmd
+                phase["resolved_cmd"] = (
+                    phase.get("command", "(tool not found)") if not cmd else cmd
+                )
                 phase["tool_available"] = cmd is not None
         except (ValueError, Exception) as e:
             if logger:
@@ -286,7 +299,9 @@ def create_app(config=None, logger=None):
 
         job_id = _create_job(target=target)
         if logger:
-            logger.info(f"recon_execute: job={job_id} target={target} phases={len(phases_data)}")
+            logger.info(
+                f"recon_execute: job={job_id} target={target} phases={len(phases_data)}"
+            )
         job = _get_job(job_id)
         q = job["queue"]
 
@@ -301,7 +316,9 @@ def create_app(config=None, logger=None):
                 cmd = phase.get("resolved_cmd")
                 available = phase.get("tool_available", False)
                 if not cmd or not available:
-                    q.put(f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n")
+                    q.put(
+                        f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n"
+                    )
                     continue
 
                 tool_name = phase.get("tool", "unknown")
@@ -311,7 +328,9 @@ def create_app(config=None, logger=None):
                 progress_msg = f"event: progress\ndata: {phase_idx}|{total}|{tool_name}|{phase.get('purpose', '')}\n\n"
                 q.put(("__progress__", progress_msg))
 
-                q.put(f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n")
+                q.put(
+                    f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n"
+                )
                 q.put(f"[*] $ {cmd}\n\n")
 
                 done_event = threading.Event()
@@ -330,21 +349,27 @@ def create_app(config=None, logger=None):
 
                 phase_output = "".join(phase_buf)
                 collected[tool_name] = phase_output
-                _session_log.record_output(tool_name, cmd, phase_output,
-                                           exit_code[0] or 0, source="recon")
-                q.put(f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n")
+                _session_log.record_output(
+                    tool_name, cmd, phase_output, exit_code[0] or 0, source="recon"
+                )
+                q.put(
+                    f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n"
+                )
 
                 import json as _json
+
                 summary_lines = SessionLog.parse_phase_summary(tool_name, phase_output)
-                confirm_data = _json.dumps({
-                    "phase": phase.get("phase", "?"),
-                    "tool": tool_name,
-                    "purpose": phase.get("purpose", ""),
-                    "exit_code": exit_code[0] or 0,
-                    "findings": summary_lines,
-                    "phase_idx": phase_idx,
-                    "total": total,
-                })
+                confirm_data = _json.dumps(
+                    {
+                        "phase": phase.get("phase", "?"),
+                        "tool": tool_name,
+                        "purpose": phase.get("purpose", ""),
+                        "exit_code": exit_code[0] or 0,
+                        "findings": summary_lines,
+                        "phase_idx": phase_idx,
+                        "total": total,
+                    }
+                )
                 confirm_msg = f"event: phase_confirm\ndata: {confirm_data}\n\n"
                 q.put(("__progress__", confirm_msg))
 
@@ -352,7 +377,9 @@ def create_app(config=None, logger=None):
                 job["confirm_choice"] = True
                 job["confirm_event"].wait(timeout=600)
                 if not job["confirm_choice"]:
-                    q.put(f"\n[!] === USER STOPPED AFTER PHASE {phase.get('phase', '?')} ===\n")
+                    q.put(
+                        f"\n[!] === USER STOPPED AFTER PHASE {phase.get('phase', '?')} ===\n"
+                    )
                     break
 
             job["collected_output"] = collected
@@ -361,9 +388,13 @@ def create_app(config=None, logger=None):
                 report.add_phase_output(tool, output)
             job["report"] = report
             if logger:
-                logger.info(f"recon_execute: job={job_id} complete, tools={list(collected.keys())}")
+                logger.info(
+                    f"recon_execute: job={job_id} complete, tools={list(collected.keys())}"
+                )
 
-            done_progress = f"event: progress\ndata: {total}|{total}|done|ALL PHASES COMPLETE\n\n"
+            done_progress = (
+                f"event: progress\ndata: {total}|{total}|done|ALL PHASES COMPLETE\n\n"
+            )
             q.put(("__progress__", done_progress))
 
             q.put(None)  # sentinel
@@ -404,7 +435,9 @@ def create_app(config=None, logger=None):
                 phases = build_recon_plan(target, config, preset=preset)
                 for phase in phases:
                     cmd = resolve_tool_command(phase)
-                    phase["resolved_cmd"] = phase.get("command", "(tool not found)") if not cmd else cmd
+                    phase["resolved_cmd"] = (
+                        phase.get("command", "(tool not found)") if not cmd else cmd
+                    )
                     phase["tool_available"] = cmd is not None
             except Exception as e:
                 return jsonify({"error": str(e)}), 400
@@ -420,31 +453,44 @@ def create_app(config=None, logger=None):
                 for phase in phases:
                     cmd = phase.get("resolved_cmd")
                     if not cmd or not phase.get("tool_available"):
-                        q.put(f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n")
+                        q.put(
+                            f"[!] Phase {phase.get('phase', '?')}: {phase.get('tool', '?')} not found, skipping\n"
+                        )
                         continue
                     tool_name = phase.get("tool", "unknown")
                     phase_buf = []
                     phase_idx += 1
-                    q.put(("__progress__", f"event: progress\ndata: {phase_idx}|{total_phases}|{tool_name}|{phase.get('purpose', '')}\n\n"))
-                    q.put(f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n")
+                    q.put(
+                        (
+                            "__progress__",
+                            f"event: progress\ndata: {phase_idx}|{total_phases}|{tool_name}|{phase.get('purpose', '')}\n\n",
+                        )
+                    )
+                    q.put(
+                        f"\n[*] === Phase {phase.get('phase', '?')}: {phase.get('purpose', '')} ({tool_name}) ===\n"
+                    )
                     q.put(f"[*] $ {cmd}\n\n")
                     done_ev = threading.Event()
                     exit_code = [None]
                     batch = []
                     BATCH_SIZE = 25
+
                     def flush_batch():
                         nonlocal batch
                         if batch:
                             q.put("".join(batch))
                             batch = []
+
                     def on_out(line, _b=phase_buf):
                         _b.append(line)
                         batch.append(line)
                         if len(batch) >= BATCH_SIZE:
                             flush_batch()
+
                     def on_done(code):
                         exit_code[0] = code
                         done_ev.set()
+
                     run_tool(cmd, on_out, on_done)
                     done_ev.wait()
                     flush_batch()
@@ -454,13 +500,20 @@ def create_app(config=None, logger=None):
                         "cmd": cmd,
                         "exit_code": exit_code[0] or 0,
                     }
-                    q.put(f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n")
+                    q.put(
+                        f"\n[+] Phase {phase.get('phase', '?')} completed (exit {exit_code[0]})\n"
+                    )
                 job["collected_output"] = collected
                 report = ReconReport(target)
                 for t, detail in collected.items():
                     report.add_phase_output(t, detail["output"])
                 job["report"] = report
-                q.put(("__progress__", f"event: progress\ndata: {total_phases}|{total_phases}|done|ALL PHASES COMPLETE\n\n"))
+                q.put(
+                    (
+                        "__progress__",
+                        f"event: progress\ndata: {total_phases}|{total_phases}|done|ALL PHASES COMPLETE\n\n",
+                    )
+                )
                 q.put(f"\n[*] All recon phases complete.\n")
                 q.put(None)
                 job["done"] = True
@@ -486,17 +539,30 @@ def create_app(config=None, logger=None):
             try:
                 module = module_class(config, logger)
                 result = module.run(target)
-                result_str = result.get("summary", str(result)) if isinstance(result, dict) else str(result) if result else ""
+                result_str = (
+                    result.get("summary", str(result))
+                    if isinstance(result, dict)
+                    else str(result) if result else ""
+                )
                 output_buf.append(result_str)
                 q.put(f"[+] Result: {result}\n")
                 if logger:
-                    logger.info(f"modules_run: job={job_id} module={module_id} completed")
+                    logger.info(
+                        f"modules_run: job={job_id} module={module_id} completed"
+                    )
             except Exception as e:
                 if logger:
-                    logger.exception(f"modules_run: job={job_id} module={module_id} failed: {e}")
+                    logger.exception(
+                        f"modules_run: job={job_id} module={module_id} failed: {e}"
+                    )
                 q.put(f"[!] Error: {e}\n")
-            _session_log.record_output(module_id, f"module:{module_id}",
-                                       "\n".join(output_buf), 0, source="module")
+            _session_log.record_output(
+                module_id,
+                f"module:{module_id}",
+                "\n".join(output_buf),
+                0,
+                source="module",
+            )
             q.put(None)
             job["done"] = True
 
@@ -516,8 +582,9 @@ def create_app(config=None, logger=None):
         if not job:
             if logger:
                 logger.warning(f"stream: job not found job_id={job_id}")
-            return Response("event: error\ndata: Job not found\n\n",
-                            mimetype="text/event-stream")
+            return Response(
+                "event: error\ndata: Job not found\n\n", mimetype="text/event-stream"
+            )
 
         def _format_msg(msg):
             if msg is None:
@@ -553,8 +620,11 @@ def create_app(config=None, logger=None):
                 if msg is None:
                     break
 
-        return Response(generate(), mimetype="text/event-stream",
-                        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+        return Response(
+            generate(),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     @app.route("/report/<job_id>")
     def report(job_id):
@@ -569,19 +639,34 @@ def create_app(config=None, logger=None):
         if not rpt:
             if logger:
                 logger.warning(f"report: no report data job_id={job_id}")
-            return jsonify({"error": "No report data available (scan may still be running)"}), 404
+            return (
+                jsonify(
+                    {"error": "No report data available (scan may still be running)"}
+                ),
+                404,
+            )
 
         try:
             path = rpt.save(fmt=fmt)
             download_name = _safe_download_name(path)
             if fmt == "html":
                 content = rpt.generate_html()
-                return Response(content, mimetype="text/html",
-                                headers={"Content-Disposition": f"attachment; filename={download_name}"})
+                return Response(
+                    content,
+                    mimetype="text/html",
+                    headers={
+                        "Content-Disposition": f"attachment; filename={download_name}"
+                    },
+                )
             else:
                 content = rpt.generate_markdown()
-                return Response(content, mimetype="text/markdown",
-                                headers={"Content-Disposition": f"attachment; filename={download_name}"})
+                return Response(
+                    content,
+                    mimetype="text/markdown",
+                    headers={
+                        "Content-Disposition": f"attachment; filename={download_name}"
+                    },
+                )
         except Exception as e:
             if logger:
                 logger.error(f"Report generation error: {e}")
@@ -590,7 +675,11 @@ def create_app(config=None, logger=None):
     @app.route("/findings/<job_id>")
     def findings(job_id):
         """Return parsed findings summary, next-step commands, and new hostnames."""
-        from core.host_check import extract_hostnames_from_output, hostname_in_hosts, read_hosts_file
+        from core.host_check import (
+            extract_hostnames_from_output,
+            hostname_in_hosts,
+            read_hosts_file,
+        )
 
         job = _get_job(job_id)
         if not job:
@@ -601,19 +690,20 @@ def create_app(config=None, logger=None):
 
         collected = job.get("collected_output", {})
         all_output = "\n".join(
-            v["output"] if isinstance(v, dict) else v
-            for v in collected.values()
+            v["output"] if isinstance(v, dict) else v for v in collected.values()
         )
         new_hosts = extract_hostnames_from_output(all_output)
         hosts_map = read_hosts_file()
         unmapped = [h for h in new_hosts if not hostname_in_hosts(h, hosts_map)]
 
-        return jsonify({
-            "summary": rpt.get_findings_summary(),
-            "next_steps": rpt.get_next_steps(),
-            "target": job.get("target", ""),
-            "new_hostnames": unmapped,
-        })
+        return jsonify(
+            {
+                "summary": rpt.get_findings_summary(),
+                "next_steps": rpt.get_next_steps(),
+                "target": job.get("target", ""),
+                "new_hostnames": unmapped,
+            }
+        )
 
     @app.route("/nextsteps/execute", methods=["POST"])
     def nextsteps_execute():
@@ -652,8 +742,13 @@ def create_app(config=None, logger=None):
 
             run_tool(cmd, on_output, on_complete)
             done_event.wait()
-            _session_log.record_output(tool_name, cmd, "".join(output_buf),
-                                       exit_code[0] or 0, source="next_step")
+            _session_log.record_output(
+                tool_name,
+                cmd,
+                "".join(output_buf),
+                exit_code[0] or 0,
+                source="next_step",
+            )
             q.put(f"\n[+] Command completed (exit {exit_code[0]})\n")
             q.put(None)
             job["done"] = True
@@ -667,14 +762,16 @@ def create_app(config=None, logger=None):
         summary = _session_log.get_findings_summary()
         recs = _session_log.get_attack_recommendations()
         history = _session_log.get_run_history()
-        return jsonify({
-            "summary": summary,
-            "findings_by_tool": _session_log.get_findings_by_tool(),
-            "next_steps": recs,
-            "history": history,
-            "log_file": _session_log.get_log_path(),
-            "target": _session_log.target,
-        })
+        return jsonify(
+            {
+                "summary": summary,
+                "findings_by_tool": _session_log.get_findings_by_tool(),
+                "next_steps": recs,
+                "history": history,
+                "log_file": _session_log.get_log_path(),
+                "target": _session_log.target,
+            }
+        )
 
     @app.route("/session/report")
     def session_report():
@@ -685,12 +782,22 @@ def create_app(config=None, logger=None):
             path = report.save(fmt=fmt)
             if fmt == "html":
                 content = report.generate_html()
-                return Response(content, mimetype="text/html",
-                                headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+                return Response(
+                    content,
+                    mimetype="text/html",
+                    headers={
+                        "Content-Disposition": f"attachment; filename={path.split('/')[-1]}"
+                    },
+                )
             else:
                 content = report.generate_markdown()
-                return Response(content, mimetype="text/markdown",
-                                headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+                return Response(
+                    content,
+                    mimetype="text/markdown",
+                    headers={
+                        "Content-Disposition": f"attachment; filename={path.split('/')[-1]}"
+                    },
+                )
         except Exception as e:
             if logger:
                 logger.error(f"Session report error: {e}")
@@ -709,10 +816,21 @@ def create_app(config=None, logger=None):
     @app.route("/support/ticket", methods=["POST"])
     def support_ticket():
         """Save a local issue ticket to issues/ as markdown. OWASP-aligned input validation."""
-        from utils.input_validation import validate_support_ticket, sanitize_for_filename, MAX_REQUEST_BODY_BYTES
+        from utils.input_validation import (
+            validate_support_ticket,
+            sanitize_for_filename,
+            MAX_REQUEST_BODY_BYTES,
+        )
 
         if request.content_length and request.content_length > MAX_REQUEST_BODY_BYTES:
-            return jsonify({"error": f"Request body too large (max {MAX_REQUEST_BODY_BYTES} bytes)"}), 413
+            return (
+                jsonify(
+                    {
+                        "error": f"Request body too large (max {MAX_REQUEST_BODY_BYTES} bytes)"
+                    }
+                ),
+                413,
+            )
 
         payload = request.get_json(silent=True) or {}
         ok, err, validated = validate_support_ticket(payload)

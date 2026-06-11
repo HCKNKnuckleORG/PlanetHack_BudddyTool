@@ -43,7 +43,7 @@ def get_tools_from_config(config: Any) -> Dict[str, Dict[str, Any]]:
 def check_tools(config: Any) -> Tuple[List[str], List[Dict]]:
     """
     Check which required tools are installed and which are missing.
-    
+
     Returns:
         (installed_binaries, missing_entries)
         missing_entries: list of {binary, package, description, ...}
@@ -61,12 +61,18 @@ def check_tools(config: Any) -> Tuple[List[str], List[Dict]]:
         if check_tool_available(binary):
             installed.append(binary)
         else:
-            missing.append({
-                "binary": binary,
-                "package": pkg,
-                "description": desc,
-                **({"fallback_for": info["fallback_for"]} if isinstance(info, dict) and info.get("fallback_for") else {}),
-            })
+            missing.append(
+                {
+                    "binary": binary,
+                    "package": pkg,
+                    "description": desc,
+                    **(
+                        {"fallback_for": info["fallback_for"]}
+                        if isinstance(info, dict) and info.get("fallback_for")
+                        else {}
+                    ),
+                }
+            )
 
     return installed, missing
 
@@ -77,7 +83,7 @@ def install_tools_via_apt(
 ) -> bool:
     """
     Install packages via apt. Requires sudo. Only on Kali/Debian.
-    
+
     Returns:
         True if install succeeded, False otherwise
     """
@@ -86,11 +92,15 @@ def install_tools_via_apt(
 
     if not is_kali_or_debian():
         if logger:
-            logger.warning("Not on Kali/Debian - cannot auto-install. Install manually: " + ", ".join(packages))
+            logger.warning(
+                "Not on Kali/Debian - cannot auto-install. Install manually: "
+                + ", ".join(packages)
+            )
         return False
 
     import re
-    _PKG_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9.+\-]+$')
+
+    _PKG_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9.+\-]+$")
     for pkg in packages:
         if not _PKG_RE.match(pkg):
             if logger:
@@ -102,7 +112,9 @@ def install_tools_via_apt(
         logger.info(f"Installing: {', '.join(packages)}")
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+        result = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True, timeout=300
+        )
         if result.returncode != 0:
             if logger:
                 logger.error(f"Install failed: {result.stderr or result.stdout}")
@@ -126,13 +138,13 @@ def run_setup_check(
 ) -> bool:
     """
     Run tool check. If missing tools, optionally prompt and install.
-    
+
     Args:
         config: Config object
         logger: Logger
         ask_callback: func(missing: List[dict]) -> bool. Return True to install.
         install_callback: func(msg: str) -> None. Progress callback.
-    
+
     Returns:
         True to continue (all OK or user skipped), False on critical failure
     """
@@ -158,6 +170,9 @@ def run_setup_check(
     if success:
         logger.info("Tool installation completed.")
     else:
-        logger.warning("Some tools may not have installed. Run: sudo apt install " + " ".join(packages))
+        logger.warning(
+            "Some tools may not have installed. Run: sudo apt install "
+            + " ".join(packages)
+        )
 
     return True

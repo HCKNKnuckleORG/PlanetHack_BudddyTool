@@ -11,8 +11,9 @@ import threading
 from queue import Queue, Empty
 from typing import Dict, Any, Optional, List
 
-
-_MAX_BUFFER_ITEMS = 50000  # cap to prevent memory explosion from heavy tools (gobuster, nuclei)
+_MAX_BUFFER_ITEMS = (
+    50000  # cap to prevent memory explosion from heavy tools (gobuster, nuclei)
+)
 
 
 class BufferedQueue(Queue):
@@ -53,10 +54,14 @@ def cleanup_old_jobs() -> None:
         if stale:
             _log.debug(f"cleanup_old_jobs: removed {len(stale)} stale job(s)")
         if len(_jobs) > _MAX_JOBS:
-            oldest = sorted(_jobs.items(), key=lambda x: x[1]["created"])[: len(_jobs) - _MAX_JOBS]
+            oldest = sorted(_jobs.items(), key=lambda x: x[1]["created"])[
+                : len(_jobs) - _MAX_JOBS
+            ]
             for jid, _ in oldest:
                 del _jobs[jid]
-            _log.warning(f"cleanup_old_jobs: job limit reached, evicted {len(oldest)} oldest job(s)")
+            _log.warning(
+                f"cleanup_old_jobs: job limit reached, evicted {len(oldest)} oldest job(s)"
+            )
 
 
 def create_job(target: str = "") -> str:
@@ -73,7 +78,9 @@ def create_job(target: str = "") -> str:
             "confirm_event": threading.Event(),
             "confirm_choice": True,
         }
-        _log.debug(f"create_job: job_id={job_id} target={target!r} total_jobs={len(_jobs)}")
+        _log.debug(
+            f"create_job: job_id={job_id} target={target!r} total_jobs={len(_jobs)}"
+        )
     return job_id
 
 

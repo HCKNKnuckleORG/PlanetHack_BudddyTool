@@ -7,26 +7,20 @@ from pathlib import Path
 from typing import Dict, Any
 import os
 
+
 class Config:
     """Configuration manager"""
-    
+
     def __init__(self, config_path: str = "config/config.yaml", env: str = "dev"):
         self.env = env
         self.config_path = Path(config_path)
         self.config = self._load_config()
-        
+
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from YAML file"""
-        default_config = {
-            "app": {
-                "name": "PlanetHack",
-                "version": "1.0.0",
-                "theme": "80s_hacker"
-            },
-            "logging": {
-                "level": "INFO",
-                "file": "logs/planethack.log"
-            },
+        default_config: Dict[str, Any] = {
+            "app": {"name": "PlanetHack", "version": "1.0.0", "theme": "80s_hacker"},
+            "logging": {"level": "INFO", "file": "logs/planethack.log"},
             "modules": {
                 "recon": {"enabled": True},
                 "sql": {"enabled": True},
@@ -42,12 +36,12 @@ class Config:
                 "session": {"enabled": True},
                 "csrf": {"enabled": True},
                 "request_smuggling": {"enabled": True},
-                "cache": {"enabled": True}
+                "cache": {"enabled": True},
             },
             "tools": {
                 "nmap": {"path": "nmap"},
                 "sqlmap": {"path": "sqlmap"},
-                "dirsearch": {"path": "dirsearch"}
+                "dirsearch": {"path": "dirsearch"},
             },
             "gui": {
                 "theme": "80s_hacker",
@@ -56,13 +50,13 @@ class Config:
                     "fg": "#00FF00",
                     "accent": "#00FFFF",
                     "warning": "#FFFF00",
-                    "error": "#FF0000"
-                }
-            }
+                    "error": "#FF0000",
+                },
+            },
         }
-        
+
         if self.config_path.exists():
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path, "r") as f:
                 file_config = yaml.safe_load(f) or {}
                 # Merge with defaults
                 default_config.update(file_config)
@@ -79,26 +73,26 @@ class Config:
         # Override with environment variables
         env_config = self._load_env_config()
         default_config.update(env_config)
-        
+
         return default_config
-    
+
     def _load_env_config(self) -> Dict[str, Any]:
         """Load configuration from environment variables"""
-        config = {}
-        
+        config: Dict[str, Any] = {}
+
         if os.getenv("LOG_LEVEL"):
             config.setdefault("logging", {})["level"] = os.getenv("LOG_LEVEL")
-        
+
         if os.getenv("ENV"):
             config["environment"] = os.getenv("ENV")
-        
+
         return config
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value using dot notation"""
-        keys = key.split('.')
-        value = self.config
-        
+        keys = key.split(".")
+        value: Any = self.config
+
         for k in keys:
             if isinstance(value, dict):
                 value = value.get(k)
@@ -106,18 +100,17 @@ class Config:
                     return default
             else:
                 return default
-        
+
         return value
-    
+
     def set(self, key: str, value: Any):
         """Set configuration value using dot notation"""
-        keys = key.split('.')
+        keys = key.split(".")
         config = self.config
-        
+
         for k in keys[:-1]:
             if k not in config:
                 config[k] = {}
             config = config[k]
-        
-        config[keys[-1]] = value
 
+        config[keys[-1]] = value

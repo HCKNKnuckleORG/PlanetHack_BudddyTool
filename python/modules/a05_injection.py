@@ -24,7 +24,9 @@ class A05InjectionModule(BaseModule):
         if not self.validate_target(target):
             return {"error": "Invalid target format"}
 
-        base = target if target.startswith(("http://", "https://")) else f"http://{target}"
+        base = (
+            target if target.startswith(("http://", "https://")) else f"http://{target}"
+        )
         results = {
             "target": target,
             "owasp": "A05:2025 Injection",

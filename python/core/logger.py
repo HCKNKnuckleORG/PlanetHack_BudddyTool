@@ -18,6 +18,7 @@ ERROR_LOG_PATH = LOGS_DIR / "planethack_errors.log"
 
 class InterceptHandler(logging.Handler):
     """Intercept standard logging messages toward loguru"""
+
     def emit(self, record):
         try:
             level = loguru_logger.level(record.levelname).name
@@ -29,7 +30,10 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        loguru_logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        loguru_logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
+
 
 def setup_logger(level="INFO", env="dev", no_color=False):
     """Setup logger with appropriate configuration.
@@ -76,7 +80,7 @@ def setup_logger(level="INFO", env="dev", no_color=False):
             "<level>{message}</level>"
         )
 
-    is_dev = (env == "dev")
+    is_dev = env == "dev"
 
     loguru_logger.add(
         sys.stdout,
