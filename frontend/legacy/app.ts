@@ -100,7 +100,7 @@
         return buildPlan(formData);
       })
       .catch((err) => {
-        if (planContainer) planContainer.innerHTML = '<span class="line-error">[!] ' + err + "</span>";
+        if (planContainer) planContainer.innerHTML = '<span class="line-error">[!] ' + escapeAttr(String(err)) + "</span>";
       });
   });
 
@@ -206,7 +206,7 @@
       .then((r) => r.json())
       .then((data: { error?: string; phases?: Phase[]; target?: string }) => {
         if (data.error) {
-          planContainer.innerHTML = '<span class="line-error">[!] ' + data.error + "</span>";
+          planContainer.innerHTML = '<span class="line-error">[!] ' + escapeAttr(data.error) + "</span>";
           if (statusVal) statusVal.textContent = "ERROR";
           return;
         }
@@ -218,7 +218,7 @@
         }
       })
       .catch((err) => {
-        planContainer.innerHTML = '<span class="line-error">[!] ' + err + "</span>";
+        planContainer.innerHTML = '<span class="line-error">[!] ' + escapeAttr(String(err)) + "</span>";
       });
   }
 
@@ -234,11 +234,11 @@
       html += '<div class="phase-card">';
       html +=
         '<div class="phase-title">PHASE ' +
-        p.phase +
+        escapeAttr(String(p.phase)) +
         "  |  " +
-        (p.purpose || "").toUpperCase() +
+        escapeAttr((p.purpose || "").toUpperCase()) +
         "  |  " +
-        (p.tool || "").toUpperCase() +
+        escapeAttr((p.tool || "").toUpperCase()) +
         avail +
         "</div>";
       html += '<div class="phase-cmd-edit">';
@@ -356,6 +356,20 @@
 
   const statusVal = document.getElementById("status-value");
 
+  /* Only allow same-origin redirects to prevent open redirect. Returns a
+     freshly-parsed, origin-relative path or null when the destination is
+     external or unparseable. */
+  function safeLocalPath(dest: string): string | null {
+    if (typeof dest !== "string" || dest === "") return null;
+    try {
+      const u = new URL(dest, window.location.origin);
+      if (u.origin !== window.location.origin) return null;
+      return u.pathname + u.search + u.hash;
+    } catch {
+      return null;
+    }
+  }
+
   grid.addEventListener("click", function (e: MouseEvent) {
     const btn = (e.target as HTMLElement).closest(".module-btn");
     if (!btn) return;
@@ -383,7 +397,8 @@
       .then((data: { redirect?: string; job_id?: string; error?: string }) => {
         (btn as HTMLButtonElement).disabled = false;
         if (data.redirect) {
-          window.location.href = data.redirect;
+          const dest = safeLocalPath(data.redirect);
+          if (dest) window.location.href = dest;
         } else if (data.job_id) {
           window.location.href = "/terminal?job=" + data.job_id;
         } else if (data.error) {

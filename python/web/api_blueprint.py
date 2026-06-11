@@ -3,6 +3,9 @@ PlanetHack REST API v1 - API-first endpoints for TypeScript/SPA consumption.
 All routes return JSON. CORS enabled for frontend dev server.
 """
 
+import os
+import re
+
 from flask import Blueprint, request, jsonify, Response
 from core.recon_plan import build_recon_plan
 from core.tool_runner import resolve_tool_command
@@ -15,6 +18,13 @@ from modules import MODULE_REGISTRY
 from utils.helpers import is_ip_address, validate_url
 
 api_v1 = Blueprint("api_v1", __name__, url_prefix="/api/v1")
+
+
+def _safe_download_name(path: str) -> str:
+    """Return a header-safe attachment filename derived from a file path."""
+    name = os.path.basename(str(path))
+    name = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+    return name or "report"
 
 
 def _validate_target(target: str) -> bool:
@@ -575,16 +585,19 @@ def report(job_id):
     if not rpt:
         return jsonify({"error": "No report data available"}), 404
     fmt = request.args.get("format", "md")
+    if fmt not in ("md", "html", "json"):
+        return jsonify({"error": "Invalid format"}), 400
     try:
         path = rpt.save(fmt=fmt)
+        download_name = _safe_download_name(path)
         if fmt == "html":
             content = rpt.generate_html()
-            return Response(content, mimetype="text/html", headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+            return Response(content, mimetype="text/html", headers={"Content-Disposition": f"attachment; filename={download_name}"})
         else:
             content = rpt.generate_markdown()
-            return Response(content, mimetype="text/markdown", headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            return Response(content, mimetype="text/markdown", headers={"Content-Disposition": f"attachment; filename={download_name}"})
+    except Exception:
+        return jsonify({"error": "Report generation failed"}), 500
 
 
 @api_v1.route("/findings/<job_id>")
@@ -849,7 +862,7 @@ def support_ticket():
 
     try:
         out_path.write_text("\n".join(body), encoding="utf-8")
-    except Exception as e:
-        return jsonify({"error": f"Failed to write ticket: {e}"}), 500
+    except Exception:
+        return jsonify({"error": "Failed to write ticket"}), 500
 
     return jsonify({"ticket_id": ticket_id, "path": str(out_path)})

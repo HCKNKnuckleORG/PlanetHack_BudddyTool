@@ -7,10 +7,19 @@ import time
 import random
 import threading
 import json
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 from queue import Queue, Empty
 from typing import Dict, Any, Optional
+
+
+def _safe_download_name(path: str) -> str:
+    """Return a header-safe attachment filename derived from a file path."""
+    name = os.path.basename(str(path))
+    name = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+    return name or "report"
 
 from flask import (
     Flask, render_template, request, jsonify, Response, redirect, url_for,
@@ -550,6 +559,8 @@ def create_app(config=None, logger=None):
     @app.route("/report/<job_id>")
     def report(job_id):
         fmt = request.args.get("format", "md")
+        if fmt not in ("md", "html", "json"):
+            return jsonify({"error": "Invalid format"}), 400
         job = _get_job(job_id)
         if not job:
             return jsonify({"error": "Job not found"}), 404
@@ -562,18 +573,19 @@ def create_app(config=None, logger=None):
 
         try:
             path = rpt.save(fmt=fmt)
+            download_name = _safe_download_name(path)
             if fmt == "html":
                 content = rpt.generate_html()
                 return Response(content, mimetype="text/html",
-                                headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+                                headers={"Content-Disposition": f"attachment; filename={download_name}"})
             else:
                 content = rpt.generate_markdown()
                 return Response(content, mimetype="text/markdown",
-                                headers={"Content-Disposition": f"attachment; filename={path.split('/')[-1]}"})
+                                headers={"Content-Disposition": f"attachment; filename={download_name}"})
         except Exception as e:
             if logger:
                 logger.error(f"Report generation error: {e}")
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error": "Report generation failed"}), 500
 
     @app.route("/findings/<job_id>")
     def findings(job_id):
@@ -759,7 +771,9 @@ def create_app(config=None, logger=None):
         try:
             out_path.write_text("\n".join(body), encoding="utf-8")
         except Exception as e:
-            return jsonify({"error": f"Failed to write ticket: {e}"}), 500
+            if logger:
+                logger.error(f"Failed to write ticket: {e}")
+            return jsonify({"error": "Failed to write ticket"}), 500
 
         return jsonify({"ticket_id": ticket_id, "path": str(out_path)})
 
